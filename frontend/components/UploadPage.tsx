@@ -2,6 +2,9 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
+import Footer from "./landing-page/Footer";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -106,89 +109,6 @@ const secondaryNav = [
   { id: "clean", label: "Deep Clean", Icon: BroomIcon, href: "/clean" },
 ];
 
-function Sidebar({ active }: { active: string }) {
-  return (
-    <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-screen sticky top-0">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-slate-100">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 via-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-200">
-          <ZapIcon size={15} className="text-white" />
-        </div>
-        <div>
-          <span className="text-base font-black tracking-tight text-slate-800">Cypher</span>
-          <span className="text-base font-black tracking-tight text-blue-600"> Cloud</span>
-        </div>
-      </div>
-
-      {/* Primary Nav */}
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ id, label, Icon, badge, href }) => {
-          const isActive = active === id;
-          return (
-            <Link key={id} href={href}>
-              <button
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                }`}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-blue-300 -ml-3" />
-                )}
-                <Icon size={17} />
-                <span>{label}</span>
-                {badge && !isActive && (
-                  <span className="ml-auto w-5 h-5 rounded-full bg-red-100 text-red-500 text-[10px] font-bold flex items-center justify-center">
-                    {badge}
-                  </span>
-                )}
-              </button>
-            </Link>
-          );
-        })}
-
-        <div className="pt-3 pb-1">
-          <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 mb-1">Storage</p>
-        </div>
-
-        {secondaryNav.map(({ id, label, Icon, href }) => {
-          const isActive = active === id;
-          return (
-            <Link key={id} href={href}>
-              <button
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                }`}
-              >
-                <Icon size={17} />
-                <span>{label}</span>
-              </button>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Storage Usage */}
-      <div className="p-4 border-t border-slate-100">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-semibold text-slate-500">Storage</span>
-          <span className="text-[11px] font-bold text-blue-600">68 GB / 100 GB</span>
-        </div>
-        <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
-            style={{ width: "68%" }}
-          />
-        </div>
-        <p className="text-[10px] text-slate-400 mt-1">32 GB remaining</p>
-      </div>
-    </aside>
-  );
-}
-
 // ─── Format helpers ────────────────────────────────────────────────────────────
 
 function formatBytes(bytes: number): string {
@@ -272,37 +192,17 @@ export default function UploadPage() {
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
-
+const [activeNav, setActiveNav] = useState("upload");
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <Sidebar active="upload" />
+    <>
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      
 
+        <Sidebar active={activeNav} setActive={setActiveNav} />
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        {/* Top bar */}
-        <div className="bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Upload Document</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Securely upload and encrypt your files</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search files, shards, logs…"
-                className="w-64 pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all"
-              />
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-blue-200 cursor-pointer">
-              RK
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 max-w-3xl mx-auto">
+      <Navbar/>
+        <div className="p-8 max-w-3xl mx-auto overflow-hidden">
           {/* Drop Zone */}
           <div
             onDrop={handleDrop}
@@ -351,7 +251,7 @@ export default function UploadPage() {
               {uploadProgress !== null ? (
                 <div className="w-full max-w-xs">
                   <p className="text-sm font-semibold text-slate-700 mb-3">Encrypting & uploading…</p>
-                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-scroll">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-150"
                       style={{ width: `${uploadProgress}%` }}
@@ -461,5 +361,7 @@ export default function UploadPage() {
         </div>
       </main>
     </div>
+
+    </>
   );
 }

@@ -8,14 +8,15 @@ import FileTypeStats from "@/components/FileTypeStats";
 import FoldersGrid from "@/components/FoldersGrid";
 import FilesTable from "@/components/FilesTable";
 import StoragePanel from "@/components/StoragePanel";
+import Footer from "@/components/landing-page/Footer";
 
 export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("dashboard");
 
   return (
+    <>
     <div
       className="flex min-h-screen bg-slate-50/80"
-      style={{ fontFamily: "'Sora', 'DM Sans', system-ui, sans-serif" }}
     >
       {/* ── Sidebar ───────────────────────────────────────────── */}
       <Sidebar active={activeNav} setActive={setActiveNav} />
@@ -62,5 +63,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
