@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+
+/* ── Cypher Cloud animations ──────────────────────────────────────────────── */
+@keyframes ccSlideLeft   { from { transform: translateX(-20px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+@keyframes ccSlideDown   { from { transform: translateY(-14px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes ccSlideRight  { from { transform: translateX(20px);  opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+@keyframes ccFadeSlideIn { from { transform: translateY(12px);  opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes ccDropIn      { from { transform: translateY(-8px) scale(0.97); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
+@keyframes ccFadeUp      { from { transform: translateY(4px) translateX(-50%); opacity: 0 } to { transform: translateY(0) translateX(-50%); opacity: 1 } }
+@keyframes ccSpin        { from { transform: rotate(-180deg) scale(0.4) } to { transform: rotate(0deg) scale(1) } }
+@keyframes ccPing        { 75%, 100% { transform: scale(2); opacity: 0 } }
+@keyframes ccPulse       { 0%, 100% { opacity: 1 } 50% { opacity: 0.65 } }
+
+.cc-slide-left  { animation: ccSlideLeft  0.4s ease both }
+.cc-slide-down  { animation: ccSlideDown  0.4s ease both }
+.cc-slide-right { animation: ccSlideRight 0.4s ease both }
+.cc-drop-in     { animation: ccDropIn     0.2s ease both }
+.cc-spin        { animation: ccSpin       0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both }
+.cc-ping        { animation: ccPing       1.2s cubic-bezier(0, 0, 0.2, 1) infinite }
+.cc-pulse       { animation: ccPulse      2s ease-in-out infinite }
