@@ -16,14 +16,14 @@ interface SidebarProps {
 const navItems = [
   { id: "dashboard", label: "Dashboard", Icon: DashboardIcon,lk:"dashboard" },
   { id: "upload", label: "Upload", Icon: UploadIcon,lk:"upload"},
-  { id: "files", label: "My Files", Icon: FilesIcon, badge: 3,lk:"allfiles" },
+  { id: "files", label: "My Files", Icon: FilesIcon, badge: 3,lk:"myfiles" },
 ];
 
 const secondaryNav = [
-  { id: "favorites", label: "Favourites", Icon: StarIcon },
-  { id: "shared", label: "Shared", Icon: ShareIcon },
-  { id: "trash", label: "Recycle Bin", Icon: TrashIcon },
-  { id: "clean", label: "Deep Clean", Icon: BroomIcon },
+  { id: "favorites", label: "Favourites", Icon: StarIcon,lk:"favourites"},
+  { id: "shared", label: "Shared", Icon: ShareIcon,lk:"shared"},
+  { id: "trash", label: "Recycle Bin", Icon: TrashIcon,lk:"trash"},
+  { id: "clean", label: "Deep Clean", Icon: BroomIcon,lk:"clean"},
 ];
 
 export default function Sidebar({ active, setActive }: SidebarProps) {
@@ -73,11 +73,11 @@ export default function Sidebar({ active, setActive }: SidebarProps) {
           <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest px-3 mb-1">Storage</p>
         </div>
 
-        {secondaryNav.map(({ id, label, Icon }) => {
+        {secondaryNav.map(({ id, label, Icon,lk}) => {
           const isActive = active === id;
           return (
+            <Link key={id} href={`/${lk}`}>
             <button
-              key={id}
               onClick={() => setActive(id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
@@ -88,6 +88,7 @@ export default function Sidebar({ active, setActive }: SidebarProps) {
               <Icon size={17} />
               <span>{label}</span>
             </button>
+            </Link>
           );
         })}
       </nav>

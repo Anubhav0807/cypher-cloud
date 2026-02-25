@@ -36,8 +36,8 @@ const stats = [
   },
   {
     label: "Cloud Buckets",
-    value: "9",
-    sub: "AWS · GCP · Azure",
+    value: "3",
+    sub: "AWS",
     Icon: CloudIcon,
     gradient: "from-amber-500 to-orange-500",
     bg: "bg-amber-50",
@@ -74,7 +74,7 @@ export default function StatCards() {
 
           <p className="text-2xl font-black text-slate-800 leading-none">{stat.value}</p>
           <p className="text-xs font-semibold text-slate-400 mt-1">{stat.label}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">{stat.sub}</p>
+          {/* <p className="text-[10px] text-slate-400 mt-0.5">{stat.sub}</p> */}
 
           <div
             className={`absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full bg-gradient-to-r ${stat.gradient} transition-all duration-500`}

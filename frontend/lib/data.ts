@@ -97,7 +97,7 @@ export const files: FileItem[] = [
   },
   {
     id: 3, name: "E-Wallet App.fig", type: "figma", size: "23.2 MB", modified: "Feb 16, 2025",
-    members: ["A", "B", "C", "D"], encryption: "AES-256 + RSA", status: "encrypted", clouds: ["AWS", "GCP", "Azure"],
+    members: ["A", "B", "C", "D"], encryption: "AES-256 + RSA", status: "encrypted", clouds: ["AWS"],
   },
   {
     id: 4, name: "Illustration.ai", type: "ai", size: "7.3 MB", modified: "Feb 15, 2025",

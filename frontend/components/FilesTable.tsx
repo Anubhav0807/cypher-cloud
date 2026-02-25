@@ -63,16 +63,16 @@ function MemberAvatars({ members }: MemberAvatarsProps) {
 }
 
 export default function FilesTable() {
-  const [filter, setFilter] = useState<"all" | "encrypted" | "processing">("all");
+  const [filter, setFilter] = useState<"all" | "image" | "doc">("all");
 
-  const filtered = filter === "all" ? files : files.filter((f) => f.status === filter);
+  const filtered = filter === "all" ? files : files.filter((f) => f.type === filter);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-black text-slate-800">Files</h2>
         <div className="flex items-center gap-2">
-          {(["all", "encrypted", "processing"] as const).map((f) => (
+          {(["all", "image", "doc"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -85,9 +85,6 @@ export default function FilesTable() {
               {f}
             </button>
           ))}
-          <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors ml-1">
-            View All
-          </button>
         </div>
       </div>
 
@@ -95,11 +92,11 @@ export default function FilesTable() {
         {/* Table header */}
         <div className="grid grid-cols-12 px-4 py-2.5 border-b border-slate-100 bg-slate-50/60">
           {[
-            { label: "Name", span: "col-span-4" },
+            { label: "Name", span: "col-span-5" },
             { label: "Size", span: "col-span-2" },
             { label: "Last Modified", span: "col-span-2" },
             { label: "Members", span: "col-span-2" },
-            { label: "Cloud", span: "col-span-1" },
+            // { label: "Cloud", span: "col-span-1" },
             { label: "", span: "col-span-1" },
           ].map((h) => (
             <div key={h.label} className={`${h.span} flex items-center gap-1`}>
@@ -132,7 +129,7 @@ export default function FilesTable() {
               }`}
             >
               {/* Name */}
-              <div className="col-span-4 flex items-center gap-3 min-w-0">
+              <div className="col-span-5 flex items-center gap-3 min-w-0">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${iconStyle}`}>
                   <FileIcon size={15} />
                 </div>
@@ -140,7 +137,7 @@ export default function FilesTable() {
                   <p className="text-sm font-semibold text-slate-700 truncate group-hover:text-blue-600 transition-colors">
                     {file.name}
                   </p>
-                  <p className="text-[10px] text-slate-400 font-mono">{file.encryption}</p>
+                  {/* <p className="text-[10px] text-slate-400 font-mono">{file.encryption}</p> */}
                 </div>
               </div>
 
@@ -160,7 +157,7 @@ export default function FilesTable() {
               </div>
 
               {/* Cloud */}
-              <div className="col-span-1">
+              {/* <div className="col-span-1">
                 <div className="flex flex-col gap-0.5">
                   {file.clouds.slice(0, 2).map((c) => (
                     <span
@@ -171,7 +168,7 @@ export default function FilesTable() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Actions */}
               <div className="col-span-1 flex justify-end">
