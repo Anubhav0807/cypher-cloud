@@ -13,7 +13,7 @@ Cypher-Cloud is a secure distributed cloud storage system that uses hybrid encry
 3. Decrypt the file using the AES DEK.
 4. Return the original file.
 
-## AWS guid
+## AWS guide
 
 ### Creating an S3 bucket
 1. Go to `Amazon S3 > Buckets > Create bucket`.
