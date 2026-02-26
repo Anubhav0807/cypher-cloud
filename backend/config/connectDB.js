@@ -1,0 +1,27 @@
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+if (!process.env.DB_USERNAME) {
+  throw new Error("Set DB_USERNAME in the .env file");
+}
+
+if (!process.env.DB_PASSWORD) {
+  throw new Error("Set DB_PASSWORD in the .env file");
+}
+
+const DB_URL = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.46qvyb6.mongodb.net/`;
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(DB_URL);
+    console.log("Successfully connected to the database");
+  } catch (error) {
+    console.log(error.message);
+    console.log("Failed to connect the database");
+    process.exit(1);
+  }
+};
+
+export default connectDB;
