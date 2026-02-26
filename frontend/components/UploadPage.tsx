@@ -5,6 +5,7 @@ import Link from "next/link";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./landing-page/Footer";
+import axios from "axios";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -138,56 +139,87 @@ export default function UploadPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const simulateUpload = useCallback((files: File[]) => {
-    const newFiles: UploadedFile[] = files.map((f) => ({
+ const uploadToServer = async (files: File[]) => {
+  try {
+    setUploadProgress(0);
+    const formData = new FormData();
+    // Append multiple files
+    files.forEach((file) => {
+      formData.append("files", file); // MUST match multer field name
+    });
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/upload`,
+      formData,
+      {
+        headers: {
+          "ngrok-skip-browser-warning":"true"
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(percent);
+          }
+        },
+      }
+    );
+    
+
+    console.log("Backend Response:", response.data);
+
+    // Update UI after success
+    const newFiles = files.map((f) => ({
       name: f.name,
       size: f.size,
       type: f.type,
     }));
 
-    setUploadProgress(0);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 18 + 8;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setTimeout(() => {
-          setUploadProgress(null);
-          setUploadedFiles((prev) => [...newFiles, ...prev]);
-        }, 400);
-      }
-      setUploadProgress(Math.min(progress, 100));
-    }, 120);
-  }, []);
+    setUploadedFiles((prev) => [...newFiles, ...prev]);
+    setUploadProgress(null);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) simulateUpload(files);
-    },
-    [simulateUpload]
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
+  } catch (error: any) {
+  console.error("Upload failed:", error?.response?.data || error.message);
+  setUploadProgress(null);
+}
+};
 
   const handleDragLeave = useCallback(() => {
     setIsDragging(false);
   }, []);
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files || []);
-      if (files.length > 0) simulateUpload(files);
-      e.target.value = "";
-    },
-    [simulateUpload]
-  );
+const handleInputChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length > 0) {
+      uploadToServer(files);   // ✅ THIS is the important line
+    }
+
+    e.target.value = ""; // reset input
+  },
+  [uploadToServer] // ✅ dependency updated
+);
+const handleDragOver = useCallback(
+  (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();   // VERY IMPORTANT
+    setIsDragging(true);
+  },
+  []
+);
+const handleDrop = useCallback(
+  (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+
+    if (files.length > 0) {
+      uploadToServer(files);
+    }
+  },
+  [uploadToServer]
+);
 
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
