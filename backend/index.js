@@ -14,7 +14,12 @@ const PORT = 5000;
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 
 app.use("/api/user", userRouter);
 app.use("/api/file", fileRouter);

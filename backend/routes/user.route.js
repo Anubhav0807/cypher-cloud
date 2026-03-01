@@ -1,5 +1,27 @@
 import { Router } from "express";
 
+import {
+  loginController,
+  logoutController,
+  registerController,
+  updateUserController,
+  verifyEmailController,
+  forgotPasswordController,
+  verifyForgotPWDController,
+  resetPWDController,
+} from "../controllers/user.controller.js";
+
+import auth from "../middlewares/auth.middleware.js";
+
 const userRouter = Router();
+
+userRouter.post("/login", loginController);
+userRouter.post("/register", registerController);
+userRouter.patch("/verify-email", verifyEmailController);
+userRouter.post("/logout", auth, logoutController);
+userRouter.put("/edit", auth, updateUserController);
+userRouter.post("/forgot-password", forgotPasswordController);
+userRouter.post("/verify-forgot-password-otp", verifyForgotPWDController);
+userRouter.post("/reset-password", resetPWDController);
 
 export default userRouter;

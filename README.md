@@ -46,3 +46,9 @@ Cypher-Cloud is a secure distributed cloud storage system that uses hybrid encry
 4. Add a description (optional).
 5. Click on `Create access key`.
 6. Copy or download the keys as you can't see them on site again.
+
+## Connect to Atlas using Mongosh
+Run the command:
+```bash
+mongosh mongodb+srv://cluster0.46qvyb6.mongodb.net --username atlas_db_user
+```
