@@ -2,15 +2,24 @@
 
 import React, { useState } from "react";
 import { SearchIcon, PlusIcon, BellIcon } from "./Icons";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface NavbarProps {
   onUpload?: () => void;
 }
 
 export default function Navbar({ onUpload }: NavbarProps) {
+  const router=useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
-
+  const handleLogOut=async()=>{
+    await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`,{
+    },{
+      withCredentials:true
+    });
+    router.push("/");
+  }
   return (
     <header className="flex  justify-between items-center gap-4 px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-20">
       {/* Search */}
@@ -103,7 +112,7 @@ export default function Navbar({ onUpload }: NavbarProps) {
                 </button>
               ))}
               <div className="border-t border-slate-100">
-                <button className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                <button onClick={handleLogOut} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
                   Sign Out
                 </button>
               </div>
