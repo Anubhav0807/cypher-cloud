@@ -6,11 +6,12 @@ import cors from "cors";
 import connectDB from "./config/connectDB.js";
 import userRouter from "./routes/user.route.js";
 import fileRouter from "./routes/file.route.js";
+import dashboardRouter from "./routes/dashboard.route.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cookieParser());
@@ -23,6 +24,7 @@ app.use(
 
 app.use("/api/user", userRouter);
 app.use("/api/file", fileRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 app.get("/", (request, response) => {
   return response.status(200).json({

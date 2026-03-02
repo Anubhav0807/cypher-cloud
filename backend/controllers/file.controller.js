@@ -18,14 +18,7 @@ import { autoRename } from "../utils/fileRename.util.js";
 
 import fileModel from "../models/file.model.js";
 
-const ALGORITHM = "aes-256-gcm";
-const SHARD_COUNT = 3;
-
-const BUCKETS = [
-  process.env.S3_BUCKET_A_NAME,
-  process.env.S3_BUCKET_B_NAME,
-  process.env.S3_BUCKET_C_NAME,
-];
+import { ALGORITHM, SHARD_COUNT, BUCKETS } from "../constants/storage.constant.js";
 
 export const uploadController = async (request, response) => {
   try {
@@ -36,7 +29,7 @@ export const uploadController = async (request, response) => {
       });
     }
 
-    const userId = request.user._id;
+    const user = request.user;
 
     const uploadPromises = request.files.map(async (file) => {
       const { encryptedData, ivHex, authTagHex } = encryptBuffer(
@@ -51,7 +44,7 @@ export const uploadController = async (request, response) => {
         size: file.size,
         mimetype: file.mimetype,
         encryptedSize: encryptedData.length,
-        owner: userId,
+        owner: user._id,
         encryption: {
           algorithm: ALGORITHM,
           ivHex: ivHex,
@@ -62,6 +55,9 @@ export const uploadController = async (request, response) => {
 
       const newFile = new fileModel(payload);
       await newFile.save();
+
+      user.storage.used += file.size;
+      await user.save();
 
       // Upload each shard to a different bucket
       const shardUploads = shards.map((shard, index) => {
@@ -110,12 +106,12 @@ export const uploadController = async (request, response) => {
 
 export const downloadController = async (request, response) => {
   try {
-    const userId = request.user._id;
+    const user = request.user;
     const fileId = request.params.id;
 
     const file = await fileModel.findOne({
       _id: fileId,
-      $or: [{ owner: userId }, { sharedWith: userId }],
+      $or: [{ owner: user._id }, { sharedWith: user._id }],
     });
 
     if (!file) {
@@ -174,7 +170,7 @@ export const renameController = async (request, response) => {};
 export const recycleController = async (request, response) => {
   try {
     const { fileIds } = request.body;
-    const userId = request.user._id;
+    const user = request.user;
 
     if (!fileIds) {
       return response.status(400).json({
@@ -193,7 +189,7 @@ export const recycleController = async (request, response) => {
     const result = await fileModel.updateMany(
       {
         _id: { $in: fileIds },
-        owner: userId,
+        owner: user._id,
         isRecycled: false,
       },
       {
@@ -227,7 +223,7 @@ export const recycleController = async (request, response) => {
 export const deleteController = async (request, response) => {
   try {
     const { fileIds } = request.body;
-    const userId = request.user._id;
+    const user = request.user;
 
     if (!fileIds) {
       return response.status(400).json({
@@ -245,7 +241,7 @@ export const deleteController = async (request, response) => {
 
     const files = await fileModel.find({
       _id: { $in: fileIds },
-      owner: userId,
+      owner: user._id,
     });
 
     if (files.length === 0) {
@@ -287,7 +283,7 @@ export const deleteController = async (request, response) => {
 
     await fileModel.deleteMany({
       _id: { $in: successfullyDeletedIds },
-      owner: userId,
+      owner: user._id,
     });
 
     let message = "None of the selected files were deleted";
