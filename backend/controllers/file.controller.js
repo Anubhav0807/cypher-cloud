@@ -18,7 +18,11 @@ import { autoRename } from "../utils/fileRename.util.js";
 
 import fileModel from "../models/file.model.js";
 
-import { ALGORITHM, SHARD_COUNT, BUCKETS } from "../constants/storage.constant.js";
+import {
+  ALGORITHM,
+  SHARD_COUNT,
+  BUCKETS,
+} from "../constants/storage.constant.js";
 
 export const uploadController = async (request, response) => {
   try {
@@ -56,9 +60,6 @@ export const uploadController = async (request, response) => {
       const newFile = new fileModel(payload);
       await newFile.save();
 
-      user.storage.used += file.size;
-      await user.save();
-
       // Upload each shard to a different bucket
       const shardUploads = shards.map((shard, index) => {
         const shardKey = `users/${newFile.owner}/${newFile._id}.shard-${index}`;
@@ -89,6 +90,14 @@ export const uploadController = async (request, response) => {
     });
 
     const uploadedFiles = await Promise.all(uploadPromises);
+
+    const totalUploadSize = request.files.reduce(
+      (sum, file) => sum + file.size,
+      0,
+    );
+
+    user.storage.used += totalUploadSize;
+    await user.save();
 
     return response.status(200).json({
       success: true,
@@ -285,6 +294,18 @@ export const deleteController = async (request, response) => {
       _id: { $in: successfullyDeletedIds },
       owner: user._id,
     });
+
+    const freedStorage = files.reduce((total, file) => {
+      if (successfullyDeletedIds.includes(file._id.toString())) {
+        return total + file.size;
+      }
+      return total;
+    }, 0);
+
+    if (freedStorage > 0) {
+      user.storage.used = Math.max(0, user.storage.used - freedStorage);
+      await user.save();
+    }
 
     let message = "None of the selected files were deleted";
 
