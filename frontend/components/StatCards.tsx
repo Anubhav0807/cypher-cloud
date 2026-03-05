@@ -3,10 +3,12 @@
 import React from "react";
 import { FilesIcon, LockIcon, ShardsIcon, CloudIcon } from "./Icons";
 
-const stats = [
+
+export default function StatCards({stats}:any) {
+  const statts = [
   {
     label: "Total Files",
-    value: "1,284",
+    value: stats?.totalFiles,
     sub: "+12 this week",
     Icon: FilesIcon,
     gradient: "from-blue-500 to-cyan-500",
@@ -16,7 +18,7 @@ const stats = [
   },
   {
     label: "Encrypted Files",
-    value: "1,284",
+    value: stats?.encryptedFiles,
     sub: "100% coverage",
     Icon: LockIcon,
     gradient: "from-emerald-500 to-teal-500",
@@ -26,7 +28,7 @@ const stats = [
   },
   {
     label: "Active Shards",
-    value: "284",
+    value: stats?.totalShards,
     sub: "Across 3 providers",
     Icon: ShardsIcon,
     gradient: "from-violet-500 to-purple-500",
@@ -36,7 +38,7 @@ const stats = [
   },
   {
     label: "Cloud Buckets",
-    value: "3",
+    value: stats?.cloudBuckets,
     sub: "AWS",
     Icon: CloudIcon,
     gradient: "from-amber-500 to-orange-500",
@@ -46,10 +48,9 @@ const stats = [
   },
 ];
 
-export default function StatCards() {
   return (
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-      {stats.map((stat) => (
+      {statts.map((stat) => (
         <div
           key={stat.label}
           className={`group relative bg-white rounded-2xl border border-slate-100 p-4 shadow-sm hover:shadow-lg ${stat.glow} hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer`}

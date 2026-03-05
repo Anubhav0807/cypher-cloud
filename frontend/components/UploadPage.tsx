@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./landing-page/Footer";
 import axios from "axios";
+import { useUser } from "@/context/UserContext";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,11 @@ interface UploadedFile {
   size: number;
   type: string;
 }
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
@@ -137,8 +143,10 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const {user,refreshDashboard}=useUser();
   const inputRef = useRef<HTMLInputElement>(null);
-
+  
+  
  const uploadToServer = async (files: File[]) => {
   try {
     setUploadProgress(0);
@@ -166,8 +174,8 @@ export default function UploadPage() {
       }
     );
     
-
     console.log("Backend Response:", response.data);
+    await refreshDashboard()
 
     // Update UI after success
     const newFiles = files.map((f) => ({
@@ -234,7 +242,7 @@ const [activeNav, setActiveNav] = useState("upload");
         <Sidebar active={activeNav} setActive={setActiveNav} />
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-      <Navbar/>
+      <Navbar user={user} />
         <div className="p-8 max-w-3xl mx-auto overflow-hidden">
           {/* Drop Zone */}
           <div

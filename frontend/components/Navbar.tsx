@@ -1,25 +1,55 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SearchIcon, PlusIcon, BellIcon } from "./Icons";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-interface NavbarProps {
-  onUpload?: () => void;
+interface StatProps {
+  totals: number;
 }
 
-export default function Navbar({ onUpload }: NavbarProps) {
-  const router=useRouter();
+export default function Navbar({ user }: any) {
+  console.log(user?.name);
+  const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
-  const handleLogOut=async()=>{
-    await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`,{
-    },{
-      withCredentials:true
-    });
+  
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("search") || "");
+  const previousPage = useRef(pathname);
+  
+
+useEffect(() => {
+  if (!query.trim()) return;
+
+  const searchDelay = setTimeout(() => {
+    router.replace(`/myfiles?search=${query}`);
+  }, 600);
+
+  // auto revert after 5 seconds
+  const revertDelay = setTimeout(() => {
+    setQuery("");
+    router.replace("/myfiles");
+  }, 5000);
+
+  return () => {
+    clearTimeout(searchDelay);
+    clearTimeout(revertDelay);
+  };
+}, [query, router]);
+
+  const handleLogOut = async () => {
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
     router.push("/");
-  }
+  };
   return (
     <header className="flex  justify-between items-center gap-4 px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-20">
       {/* Search */}
@@ -30,7 +60,9 @@ export default function Navbar({ onUpload }: NavbarProps) {
         />
         <input
           type="text"
-          placeholder="Search files, shards, logs…" 
+          placeholder="Search files, shards, logs…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
         />
       </div>
@@ -61,19 +93,46 @@ export default function Navbar({ onUpload }: NavbarProps) {
           {notifOpen && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-30">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Notifications</p>
+                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  Notifications
+                </p>
               </div>
               {[
-                { msg: "Shard reconstruction verified", time: "2m ago", dot: "bg-emerald-400" },
-                { msg: "New file encrypted & distributed", time: "8m ago", dot: "bg-emerald-400" },
-                { msg: "Login from new IP detected", time: "21m ago", dot: "bg-amber-400" },
-                { msg: "Key rotation completed", time: "1h ago", dot: "bg-blue-400" },
+                {
+                  msg: "Shard reconstruction verified",
+                  time: "2m ago",
+                  dot: "bg-emerald-400",
+                },
+                {
+                  msg: "New file encrypted & distributed",
+                  time: "8m ago",
+                  dot: "bg-emerald-400",
+                },
+                {
+                  msg: "Login from new IP detected",
+                  time: "21m ago",
+                  dot: "bg-amber-400",
+                },
+                {
+                  msg: "Key rotation completed",
+                  time: "1h ago",
+                  dot: "bg-blue-400",
+                },
               ].map((n, i) => (
-                <div key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0">
-                  <span className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.dot}`} />
+                <div
+                  key={i}
+                  className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                >
+                  <span
+                    className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.dot}`}
+                  />
                   <div>
-                    <p className="text-xs text-slate-700 font-medium">{n.msg}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{n.time}</p>
+                    <p className="text-xs text-slate-700 font-medium">
+                      {n.msg}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {n.time}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -91,28 +150,50 @@ export default function Navbar({ onUpload }: NavbarProps) {
             className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200"
           >
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-400 to-blue-500 flex items-center justify-center text-white text-xs font-black shadow">
-              RK
+              {user?.name
+                ?.split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((word: string) => word[0].toUpperCase())}
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-xs font-bold text-slate-700 leading-none">Raj Kumar</p>
+              <p className="text-xs font-bold text-slate-700 leading-none">
+                {user?.name}
+              </p>
             </div>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-slate-400">
-              <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              className="text-slate-400"
+            >
+              <path
+                d="M3 4.5l3 3 3-3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
 
           {userOpen && (
             <div className="absolute right-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-30">
-              {["My Profile", "API Keys", "Billing", "Team Settings"].map((item) => (
-                <button
-                  key={item}
-                  className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-                >
-                  {item}
-                </button>
-              ))}
+              {["My Profile", "API Keys", "Billing", "Team Settings"].map(
+                (item) => (
+                  <button
+                    key={item}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    {item}
+                  </button>
+                ),
+              )}
               <div className="border-t border-slate-100">
-                <button onClick={handleLogOut} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                <button
+                  onClick={handleLogOut}
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                >
                   Sign Out
                 </button>
               </div>

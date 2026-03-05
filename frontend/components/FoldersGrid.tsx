@@ -4,7 +4,8 @@ import React from "react";
 import { folders } from "@/lib/data";
 import { FolderIcon, DotsIcon } from "./Icons";
 
-export default function FoldersGrid() {
+export default function FoldersGrid({types}:any) {
+
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
