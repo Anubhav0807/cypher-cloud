@@ -13,10 +13,12 @@ export const autoRename = async (originalName, userId) => {
 
   const regex = new RegExp(`^${safeBase}( \\(\\d+\\))?${safeExt}$`);
 
-  const existingFiles = await fileModel.find({
-    owner: userId,
-    name: { $regex: regex },
-  }).select("name");
+  const existingFiles = await fileModel
+    .find({
+      owner: userId,
+      name: { $regex: regex },
+    })
+    .select("name");
 
   let max = 0;
   let originalExists = false;
@@ -40,4 +42,17 @@ export const autoRename = async (originalName, userId) => {
   if (!originalExists) return originalName;
 
   return `${base} (${max + 1})${ext}`;
+};
+
+export const formatFiles = (files) => {
+  return files.map((file) => {
+    return {
+      id: file._id,
+      name: file.name,
+      type: file.mimetype,
+      size: file.size,
+      modified: file.updatedAt,
+      members: [file.owner.name, ...file.sharedWith.map((user) => user.name)],
+    };
+  });
 };

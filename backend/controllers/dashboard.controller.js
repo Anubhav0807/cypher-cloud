@@ -3,6 +3,8 @@ import fileModel from "../models/file.model.js";
 import { BUCKET_COUNT } from "../constants/storage.constant.js";
 import { MIME_CATEGORY_MAP } from "../constants/memiCategory.contant.js";
 
+import { formatFiles } from "../utils/file.util.js";
+
 export const dataController = async (request, response) => {
   try {
     const user = request.user;
@@ -11,11 +13,14 @@ export const dataController = async (request, response) => {
       id: user._id,
       name: user.name,
       email: user.email.value,
-      storage: user,
+      storage: user.storage,
     };
 
     const files = await fileModel
-      .find({ $or: [{ owner: user._id }, { sharedWith: user._id }] })
+      .find({
+        $or: [{ owner: user._id }, { sharedWith: user._id }],
+        isRecycled: false,
+      })
       .sort({ updatedAt: -1 })
       .limit(5)
       .select("_id name mimetype size updatedAt owner sharedWith")
@@ -23,21 +28,11 @@ export const dataController = async (request, response) => {
       .populate("sharedWith", "name")
       .lean();
 
-    const formattedFiles = files.map((file) => {
-      return {
-        id: file._id,
-        name: file.name,
-        type: file.mimetype,
-        size: file.size,
-        modified: file.updatedAt,
-        members: [file.owner.name, ...file.sharedWith.map((user) => user.name)],
-      };
-    });
-
     const stats = await fileModel.aggregate([
       {
         $match: {
           $or: [{ owner: user._id }, { sharedWith: user._id }],
+          isRecycled: false,
         },
       },
       {
@@ -117,7 +112,7 @@ export const dataController = async (request, response) => {
       success: true,
       message: "Successfully retrieved dashboard data",
       user: formattedUser,
-      files: formattedFiles,
+      files: formatFiles(files),
       stats: formattedStats,
     });
   } catch (error) {

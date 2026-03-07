@@ -14,7 +14,7 @@ import {
 } from "../utils/shard.util.js";
 
 import { streamToBuffer } from "../utils/stream.util.js";
-import { autoRename } from "../utils/fileRename.util.js";
+import { autoRename, formatFiles } from "../utils/file.util.js";
 
 import fileModel from "../models/file.model.js";
 
@@ -41,7 +41,7 @@ export const uploadController = async (request, response) => {
         ALGORITHM,
       );
       const shards = splitBufferIntoShards(encryptedData, SHARD_COUNT);
-      const name = await autoRename(file.originalname);
+      const name = await autoRename(file.originalname, user._id);
 
       const payload = {
         name: name,
@@ -174,7 +174,37 @@ export const downloadController = async (request, response) => {
   }
 };
 
-export const renameController = async (request, response) => {};
+export const renameController = async (request, response) => {
+  try {
+    const { fileId } = request.body;
+    const user = request.user;
+
+    if (!fileId) {
+      return response.status(400).json({
+        success: false,
+        error: "fileId is required",
+      });
+    }
+
+    const name = await autoRename(file.originalname, user._id);
+
+    await fileModel.findOneAndUpdate(
+      { _id: fileId, owner: user._id },
+      { name: name },
+    );
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully updated the file's name",
+    });
+  } catch (error) {
+    console.error(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
 
 export const recycleController = async (request, response) => {
   try {
@@ -214,6 +244,59 @@ export const recycleController = async (request, response) => {
       message = `Successfully moved ${result.modifiedCount} file to recycle bin`;
     } else if (result.modifiedCount > 1) {
       message = `Successfully moved ${result.modifiedCount} files to recycle bin`;
+    }
+
+    return response.status(200).json({
+      success: true,
+      message: message,
+    });
+  } catch (error) {
+    console.error(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const restoreController = async (request, response) => {
+  try {
+    const { fileIds } = request.body;
+    const user = request.user;
+
+    if (!fileIds) {
+      return response.status(400).json({
+        success: false,
+        error: "fileIds are required",
+      });
+    }
+
+    if (!Array.isArray(fileIds)) {
+      return response.status(400).json({
+        success: false,
+        error: "fileIds must be an array",
+      });
+    }
+
+    const result = await fileModel.updateMany(
+      {
+        _id: { $in: fileIds },
+        owner: user._id,
+        isRecycled: true,
+      },
+      {
+        $set: {
+          isRecycled: false,
+        },
+      },
+    );
+
+    let message = "All selected files are already out of recycle bin";
+
+    if (result.modifiedCount == 1) {
+      message = `Successfully restored ${result.modifiedCount} file from recycle bin`;
+    } else if (result.modifiedCount > 1) {
+      message = `Successfully restored ${result.modifiedCount} files from recycle bin`;
     }
 
     return response.status(200).json({
@@ -336,6 +419,110 @@ export const deleteController = async (request, response) => {
     });
   } catch (error) {
     console.error(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const myFilesController = async (request, response) => {
+  try {
+    const user = request.user;
+
+    const files = await fileModel
+      .find({ owner: user._id, isRecycled: false })
+      .sort({ updatedAt: -1 })
+      .select("_id name mimetype size updatedAt owner sharedWith")
+      .populate("owner", "name")
+      .populate("sharedWith", "name")
+      .lean();
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully retrived the files",
+      files: formatFiles(files),
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const favoriteFilesController = async (request, response) => {
+  try {
+    const user = request.user;
+
+    const files = await fileModel
+      .find({ owner: user._id, isFavorite: true, isRecycled: false })
+      .sort({ updatedAt: -1 })
+      .select("_id name mimetype size updatedAt owner sharedWith")
+      .populate("owner", "name")
+      .populate("sharedWith", "name")
+      .lean();
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully retrived the files",
+      files: formatFiles(files),
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const sharedFilesController = async (request, response) => {
+  try {
+    const user = request.user;
+
+    const files = await fileModel
+      .find({ sharedWith: user._id, isRecycled: false })
+      .sort({ updatedAt: -1 })
+      .select("_id name mimetype size updatedAt owner sharedWith")
+      .populate("owner", "name")
+      .populate("sharedWith", "name")
+      .lean();
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully retrived the files",
+      files: formatFiles(files),
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const recycledFilesController = async (request, response) => {
+  try {
+    const user = request.user;
+
+    const files = await fileModel
+      .find({ owner: user._id, isRecycled: true })
+      .sort({ updatedAt: -1 })
+      .select("_id name mimetype size updatedAt owner sharedWith")
+      .populate("owner", "name")
+      .populate("sharedWith", "name")
+      .lean();
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully retrived the files",
+      files: formatFiles(files),
+    });
+  } catch (error) {
+    console.log(error);
     return response.status(500).json({
       success: false,
       error: "Internal server error",
