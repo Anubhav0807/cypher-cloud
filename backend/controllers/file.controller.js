@@ -6,7 +6,13 @@ import {
 
 import s3 from "../config/aws-s3.js";
 
-import { encryptBuffer, decryptBuffer } from "../utils/crypto.util.js";
+import {
+  generateAESKey,
+  encryptAESKey,
+  decryptAESKey,
+  encryptBuffer,
+  decryptBuffer,
+} from "../utils/crypto.util.js";
 
 import {
   splitBufferIntoShards,
@@ -36,10 +42,16 @@ export const uploadController = async (request, response) => {
     const user = request.user;
 
     const uploadPromises = request.files.map(async (file) => {
+      const aesKey = generateAESKey();
+
+      const encryptedAESKey = encryptAESKey(aesKey);
+
       const { encryptedData, ivHex, authTagHex } = encryptBuffer(
         file.buffer,
         ALGORITHM,
+        aesKey,
       );
+
       const shards = splitBufferIntoShards(encryptedData, SHARD_COUNT);
       const name = await autoRename(file.originalname, user._id);
 
@@ -53,6 +65,7 @@ export const uploadController = async (request, response) => {
           algorithm: ALGORITHM,
           ivHex: ivHex,
           authTagHex: authTagHex,
+          encryptedAESKey: encryptedAESKey,
         },
         shardCount: SHARD_COUNT,
       };
@@ -147,14 +160,16 @@ export const downloadController = async (request, response) => {
     const shardBuffers = await Promise.all(
       shardResponses.map((res) => streamToBuffer(res.Body)),
     );
-    const { algorithm, ivHex, authTagHex } = file.encryption;
+    const { algorithm, ivHex, authTagHex, encryptedAESKey } = file.encryption;
     const encryptedBuffer = mergeShardsIntoBuffer(
       shardBuffers,
       file.shardCount,
     );
+    const aesKey = decryptAESKey(encryptedAESKey);
     const decryptedBuffer = decryptBuffer(
       encryptedBuffer,
       algorithm,
+      aesKey,
       ivHex,
       authTagHex,
     );
@@ -433,7 +448,7 @@ export const myFilesController = async (request, response) => {
     const files = await fileModel
       .find({ owner: user._id, isRecycled: false })
       .sort({ updatedAt: -1 })
-      .select("_id name mimetype size updatedAt owner sharedWith")
+      .select("_id name mimetype size updatedAt owner sharedWith isFavourite")
       .populate("owner", "name")
       .populate("sharedWith", "name")
       .lean();
@@ -452,14 +467,14 @@ export const myFilesController = async (request, response) => {
   }
 };
 
-export const favoriteFilesController = async (request, response) => {
+export const favouriteFilesController = async (request, response) => {
   try {
     const user = request.user;
 
     const files = await fileModel
-      .find({ owner: user._id, isFavorite: true, isRecycled: false })
+      .find({ owner: user._id, isFavourite: true, isRecycled: false })
       .sort({ updatedAt: -1 })
-      .select("_id name mimetype size updatedAt owner sharedWith")
+      .select("_id name mimetype size updatedAt owner sharedWith isFavourite")
       .populate("owner", "name")
       .populate("sharedWith", "name")
       .lean();
@@ -468,6 +483,42 @@ export const favoriteFilesController = async (request, response) => {
       success: true,
       message: "Successfully retrived the files",
       files: formatFiles(files),
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+export const markFavController = async (request, response) => {
+  try {
+    const { fileId } = request.body;
+    const user = request.user;
+
+    if (!fileId) {
+      return response.status(400).json({
+        success: false,
+        error: "fileId is required",
+      });
+    }
+
+    const file = await fileModel.findById(fileId);
+    if (!file || !file.owner.equals(user._id)) {
+      return response.status(404).json({
+        success: false,
+        error: "File not found",
+      });
+    }
+
+    file.isFavourite = !file.isFavourite;
+    await file.save();
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully toggled file favourite status",
     });
   } catch (error) {
     console.log(error);
@@ -485,7 +536,7 @@ export const sharedFilesController = async (request, response) => {
     const files = await fileModel
       .find({ sharedWith: user._id, isRecycled: false })
       .sort({ updatedAt: -1 })
-      .select("_id name mimetype size updatedAt owner sharedWith")
+      .select("_id name mimetype size updatedAt owner sharedWith isFavourite")
       .populate("owner", "name")
       .populate("sharedWith", "name")
       .lean();
@@ -511,7 +562,7 @@ export const recycledFilesController = async (request, response) => {
     const files = await fileModel
       .find({ owner: user._id, isRecycled: true })
       .sort({ updatedAt: -1 })
-      .select("_id name mimetype size updatedAt owner sharedWith")
+      .select("_id name mimetype size updatedAt owner sharedWith isFavourite")
       .populate("owner", "name")
       .populate("sharedWith", "name")
       .lean();

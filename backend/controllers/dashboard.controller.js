@@ -23,7 +23,7 @@ export const dataController = async (request, response) => {
       })
       .sort({ updatedAt: -1 })
       .limit(5)
-      .select("_id name mimetype size updatedAt owner sharedWith")
+      .select("_id name mimetype size updatedAt owner sharedWith isFavourite")
       .populate("owner", "name")
       .populate("sharedWith", "name")
       .lean();

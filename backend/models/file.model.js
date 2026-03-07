@@ -51,6 +51,10 @@ const fileSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        encryptedAESKey: {
+          type: String,
+          required: true,
+        },
       },
       required: true,
     },
@@ -66,7 +70,7 @@ const fileSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isFavorite: {
+    isFavourite: {
       type: Boolean,
       default: false,
     },

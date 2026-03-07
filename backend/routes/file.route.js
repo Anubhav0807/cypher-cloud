@@ -2,11 +2,12 @@ import { Router } from "express";
 
 import {
   myFilesController,
-  favoriteFilesController,
+  favouriteFilesController,
   sharedFilesController,
   recycledFilesController,
   uploadController,
   downloadController,
+  markFavController,
   renameController,
   recycleController,
   restoreController,
@@ -19,12 +20,13 @@ import upload from "../middlewares/upload.middleware.js";
 const fileRouter = Router();
 
 fileRouter.get("/mine", auth, myFilesController);
-fileRouter.get("/favorite", auth, favoriteFilesController);
+fileRouter.get("/favourite", auth, favouriteFilesController);
 fileRouter.get("/shared", auth, sharedFilesController);
 fileRouter.get("/recycled", auth, recycledFilesController);
 
 fileRouter.post("/upload", auth, upload.array("files", 5), uploadController);
 fileRouter.get("/download/:id", auth, downloadController);
+fileRouter.patch("/favourite", auth, markFavController);
 fileRouter.patch("/rename", auth, renameController);
 fileRouter.patch("/recycle", auth, recycleController);
 fileRouter.patch("/restore", auth, restoreController);

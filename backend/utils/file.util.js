@@ -52,6 +52,7 @@ export const formatFiles = (files) => {
       type: file.mimetype,
       size: file.size,
       modified: file.updatedAt,
+      isFavourite: file.isFavourite,
       members: [file.owner.name, ...file.sharedWith.map((user) => user.name)],
     };
   });
