@@ -11,7 +11,7 @@ import {
   ZipIcon,
   FigmaIcon,
   AiIcon,
-} from "./Icons";
+} from "../Icons";
 import type { FileItem, CloudProvider } from "@/lib/data";
 import axios from "axios";
 import { useUser } from "@/context/UserContext";
@@ -110,46 +110,42 @@ export default function FilesTable({ files = [], search = "" }: any) {
     {},
   );
   const [localFiles, setLocalFiles] = useState(files);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [shareEmail, setShareEmail] = useState("");
-  const [selectedFile, setSelectedFile] = useState<string | number | null>(
-    null,
-  );
   const { refreshDashboard } = useUser();
 
   /* 🔥 Transform backend files → UI format */
-  const toggleFavourite = async (fileId: string | number) => {
-    try {
-     const newState =!favourites[fileId];
+const toggleFavourite = async (fileId: string | number) => {
+  try {
+    const newState = !favourites[fileId];
 
-      // update UI instantly
-      setFavourites((prev) => ({
-        ...prev,
-        [fileId]: newState,
-      }));
+    // update UI instantly
+    setFavourites((prev) => ({
+      ...prev,
+      [fileId]: newState,
+    }));
 
-      // send request to backend
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
-        {
-          fileId: fileId
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      refreshDashboard();
-    } catch (err) {
-      console.error("Favourite update failed", err);
-    }
-  };
-  useEffect(() => {
-    const favMap: any = {};
-    files.forEach((f:any) => {
-      favMap[f.id] = f.isFavourite;
-    });
-    setFavourites(favMap);
-  }, [files]);
+    // send request to backend
+    // await axios.patch(
+    //   `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
+    //   {
+    //     fileId: fileId,
+    //     favourite: newState,
+    //   },
+    //   {
+    //     withCredentials: true,
+    //   }
+    // );
+
+  } catch (err) {
+    console.error("Favourite update failed", err);
+  }
+};
+// useEffect(() => {
+//   const favMap: any = {};
+//   files.forEach((f:any) => {
+//     favMap[f.id] = f.favourite;
+//   });
+//   setFavourites(favMap);
+// }, [files]);
 
   const transformedFiles: FileItem[] = (files || []).map((file: any) => ({
     id: file.id,
@@ -161,7 +157,6 @@ export default function FilesTable({ files = [], search = "" }: any) {
     encryption: "AES-256",
     status: "encrypted",
     clouds: ["AWS"],
-    isFavourite:file.isFavourite
   }));
 
   let filtered = transformedFiles;
@@ -169,15 +164,13 @@ export default function FilesTable({ files = [], search = "" }: any) {
   if (filter !== "all") {
     filtered = filtered.filter((f) => f.type === filter);
   }
+
   if (search) {
     filtered = filtered.filter((f) =>
       f.name.toLowerCase().includes(search.toLowerCase()),
     );
   }
-  const handleShare=()=>{
-    console.log("ghhin");
-    setShareOpen(false);
-  }
+
   const handleDownload = async (fileId: string) => {
     try {
       const fileData = files.find((f: any) => f.id === fileId);
@@ -325,7 +318,6 @@ export default function FilesTable({ files = [], search = "" }: any) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Checking Favourite",file.isFavourite);
                       toggleFavourite(file.id);
                     }}
                     className="text-slate-400 hover:text-yellow-400 transition"
@@ -366,8 +358,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
 
                       <button
                         onClick={() => {
-                          setSelectedFile(file.id);
-                          setShareOpen(true);
+                          console.log("Download", file.id);
                           setActiveMenu(null);
                         }}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
@@ -389,37 +380,6 @@ export default function FilesTable({ files = [], search = "" }: any) {
           })
         )}
       </div>
-      {shareOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl w-96 shadow-lg">
-            <h3 className="text-lg font-semibold mb-3">Share File</h3>
-
-            <input
-              type="email"
-              placeholder="Enter email"
-              className="border w-full px-3 py-2 rounded mb-4"
-              value={shareEmail}
-              onChange={(e) => setShareEmail(e.target.value)}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShareOpen(false)}
-                className="px-3 py-2 text-sm text-slate-500"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
-              >
-                Share
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

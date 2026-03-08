@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { SearchIcon, PlusIcon, BellIcon } from "./Icons";
+import { SearchIcon, PlusIcon, BellIcon } from "../Icons";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
@@ -25,9 +25,9 @@ export default function Navbar({ user }: any) {
 
     const delay = setTimeout(() => {
       if (trimmedQuery) {
-        router.replace(`/myfiles?search=${trimmedQuery}`);
-      } else if (pathname === "/myfiles") {
-        router.replace("/myfiles");
+        router.replace(`/favourites?search=${trimmedQuery}`);
+      } else if (pathname === "/favourites") {
+        router.replace("/favourites");
       }
     }, 600);
 

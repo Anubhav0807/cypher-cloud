@@ -14,27 +14,35 @@ export const UserProvider = ({ children }: any) => {
 
   const fetchDashboard = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`,
-        { withCredentials: true }
+        { withCredentials: true, timeout: 20000  }
       );
-      console.log(res.data);
+      console.log("Responses now : ",res.data);
 
       const { user, stats, files } = res.data;
-
       setUser(user);
       setStats(stats);
       setFiles(files);
-      setStorage(user.storage?.storage || { total: 0, used: 0 });
+      setStorage(user.storage || { total: 0, used: 0 });
       console.log("Currently"+files);
       console.log("Currently"+storage);
+      
 
     } catch (err) {
-      console.error("Dashboard fetch failed");
+      console.error("Dashboard fetch failed",err);
+      setTimeout(fetchDashboard, 5000);
     } finally {
       setLoading(false);
     }
   };
+  const resetUserState = () => {
+  setUser(null);
+  setStats(null);
+  setFiles([]);
+  setStorage({ total: 0, used: 0 });
+};
 
   useEffect(() => {
     fetchDashboard();

@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast } from "sonner";
+import { useUser } from "@/context/UserContext";
 
 const signInSchema = z.object({
   email: z
@@ -27,7 +28,7 @@ export default function SignInPage() {
 
   const [showPass, setShowPass] = useState(false);
   const [loading,  setLoading]  = useState(false);
-
+  const {refreshDashboard}=useUser();
     const router=useRouter();
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -48,6 +49,7 @@ export default function SignInPage() {
             withCredentials:true
           }
         );
+        await refreshDashboard();
         toast.success("Welcome Back!");
         router.push("/dashboard");
     }catch(error:any){

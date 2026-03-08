@@ -20,7 +20,7 @@ export default function DashboardPage() {
   console.log("stats:", stats);
 console.log("storage:", storage);
 
-  if (!user || !stats) return null;
+  if (!user || !stats) return <Loading/>;
 
   return (
     <div className="flex min-h-screen bg-slate-50/80">
@@ -30,12 +30,12 @@ console.log("storage:", storage);
         <Navbar user={user} />
 
         <div className="flex flex-1">
-          <main className="flex-1 overflow-y-auto p-5 xl:p-6 space-y-5">
+          <main className="flex-1 overflow-y-hidden p-5 xl:p-6 space-y-5">
             <StatCards stats={stats} />
 
             <FileTypeStats types={stats?.typeStats} />
 
-            <FoldersGrid />
+            {/* <FoldersGrid /> */}
 
             <FilesTable files={files} />
           </main>

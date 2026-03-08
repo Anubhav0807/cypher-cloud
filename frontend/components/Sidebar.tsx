@@ -16,11 +16,11 @@ interface SidebarProps {
 const navItems = [
   { id: "dashboard", label: "Dashboard", Icon: DashboardIcon,lk:"dashboard" },
   { id: "upload", label: "Upload", Icon: UploadIcon,lk:"upload"},
-  { id: "files", label: "My Files", Icon: FilesIcon, badge: 3,lk:"myfiles" },
+  { id: "files", label: "My Files", Icon: FilesIcon,lk:"myfiles" },
 ];
 
 const secondaryNav = [
-  { id: "favorites", label: "Favourites", Icon: StarIcon,lk:"favourites"},
+  { id: "favourites", label: "Favourites", Icon: StarIcon,lk:"favourites"},
   { id: "shared", label: "Shared", Icon: ShareIcon,lk:"shared"},
   { id: "trash", label: "Recycle Bin", Icon: TrashIcon,lk:"trash"},
   { id: "clean", label: "Deep Clean", Icon: BroomIcon,lk:"clean"},

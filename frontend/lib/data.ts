@@ -10,6 +10,7 @@ export interface FileItem {
   encryption: string;
   status: "encrypted" | "processing" | "pending";
   clouds: CloudProvider[];
+  isFavourite:boolean;
 }
 
 export interface FolderItem {

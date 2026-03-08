@@ -3,6 +3,7 @@
 import FilesTable from "@/components/FilesTable";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
+import { useUser } from "@/context/UserContext";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
@@ -16,7 +17,7 @@ export default function Page() {
   const [files, setFiles] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const {refreshDashboard}=useUser();
   // ✅ Correct useEffect (not nested)
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -64,6 +65,7 @@ export default function Page() {
       setFiles([]);
       setShowModal(false);
       setShowFilesTable(false);
+      refreshDashboard();
     } catch (err) {
       console.error("Delete failed:", err);
       setError("Failed to delete files");
