@@ -20,7 +20,7 @@ const cookieOptions = {
   sameSite: "none",
 };
 
-const totalStorage = 15 * 1024 * 1024; // 15MB
+const totalStorage = 20 * 1024 * 1024; // 20MB
 
 export const loginController = async (request, response) => {
   try {
@@ -188,7 +188,7 @@ export const logoutController = async (request, response) => {
 
 export const updateUserController = async (request, response) => {
   try {
-    const { name, email, password, avatarUrl, mobile, upiId } = request.body;
+    const { name, email, password, mobile} = request.body;
 
     if (email && email !== request.user.email.value) {
       const user = await userModel.findOne({
@@ -230,9 +230,7 @@ export const updateUserController = async (request, response) => {
     }
 
     if (name) request.user.name = name;
-    if (avatarUrl) request.user.avatarUrl = avatarUrl;
     if (mobile) request.user.mobile = mobile;
-    if (upiId) request.user.upiId = upiId;
 
     await request.user.save();
 

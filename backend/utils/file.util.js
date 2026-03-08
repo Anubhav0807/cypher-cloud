@@ -44,7 +44,7 @@ export const autoRename = async (originalName, userId) => {
   return `${base} (${max + 1})${ext}`;
 };
 
-export const formatFiles = (files) => {
+export const formatFiles = (files, userId) => {
   return files.map((file) => {
     return {
       id: file._id,
@@ -53,6 +53,7 @@ export const formatFiles = (files) => {
       size: file.size,
       modified: file.updatedAt,
       isFavourite: file.isFavourite,
+      isMine: file.owner == userId.toString(),
       members: [file.owner.name, ...file.sharedWith.map((user) => user.name)],
     };
   });

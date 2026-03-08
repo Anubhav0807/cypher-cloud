@@ -31,7 +31,7 @@ export const dataController = async (request, response) => {
     const stats = await fileModel.aggregate([
       {
         $match: {
-          $or: [{ owner: user._id }, { sharedWith: user._id }],
+          owner: user._id,
           isRecycled: false,
         },
       },
@@ -84,6 +84,22 @@ export const dataController = async (request, response) => {
       },
     ]);
 
+    const recycleStats = await fileModel.aggregate([
+      {
+        $match: {
+          owner: user._id,
+          isRecycled: true,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          size: { $sum: "$size" },
+        },
+      },
+    ]);
+
     const typeStats = {};
 
     stats[0].mimeTypeStats.forEach((m) => {
@@ -100,6 +116,11 @@ export const dataController = async (request, response) => {
       typeStats[category].size += m.size;
     });
 
+    typeStats["Recycle Bin"] = {
+      count: recycleStats[0]?.count || 0,
+      size: recycleStats[0]?.size || 0,
+    };
+
     const formattedStats = {
       totalFiles: stats[0].totalFiles,
       encryptedFiles: stats[0].totalFiles,
@@ -112,7 +133,7 @@ export const dataController = async (request, response) => {
       success: true,
       message: "Successfully retrieved dashboard data",
       user: formattedUser,
-      files: formatFiles(files),
+      files: formatFiles(files, user._id),
       stats: formattedStats,
     });
   } catch (error) {

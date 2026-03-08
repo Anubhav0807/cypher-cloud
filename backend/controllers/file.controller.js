@@ -23,6 +23,7 @@ import {
 import { streamToBuffer } from "../utils/stream.util.js";
 import { autoRename, formatFiles } from "../utils/file.util.js";
 
+import userModel from "../models/user.model.js";
 import fileModel from "../models/file.model.js";
 
 import {
@@ -42,7 +43,32 @@ export const uploadController = async (request, response) => {
 
     const user = request.user;
 
-    const uploadPromises = request.files.map(async (file) => {
+    // Check how many more files can fit the remaining storage
+    let usedSpace = 0;
+    const remainingStorage = user.storage.total - user.storage.used;
+    const acceptedFiles = [];
+    const rejectedFiles = [];
+
+    for (const file of request.files) {
+      if (usedSpace + file.size <= remainingStorage) {
+        acceptedFiles.push(file);
+        usedSpace += file.size;
+      } else {
+        rejectedFiles.push(file.originalname);
+      }
+    }
+
+    // If no files can fit throw error
+    if (acceptedFiles.length === 0) {
+      return response.status(400).json({
+        success: false,
+        error: "Storage limit exceeded",
+        rejected: rejectedFiles,
+      });
+    }
+
+    // Else proceed to upload
+    const uploadPromises = acceptedFiles.map(async (file) => {
       const aesKey = generateAESKey();
 
       const encryptedAESKey = encryptAESKey(aesKey);
@@ -92,6 +118,19 @@ export const uploadController = async (request, response) => {
       try {
         await Promise.all(shardUploads);
       } catch (err) {
+        // Cleaup for orphan shards
+        await Promise.all(
+          shards.map((_, index) => {
+            const shardKey = `users/${newFile.owner}/${newFile._id}.shard-${index}`;
+
+            return s3.send(
+              new DeleteObjectCommand({
+                Bucket: BUCKETS[index],
+                Key: shardKey,
+              }),
+            );
+          }),
+        );
         await fileModel.findByIdAndDelete(newFile._id);
         throw err;
       }
@@ -106,18 +145,14 @@ export const uploadController = async (request, response) => {
 
     const uploadedFiles = await Promise.all(uploadPromises);
 
-    const totalUploadSize = request.files.reduce(
-      (sum, file) => sum + file.size,
-      0,
-    );
-
-    user.storage.used += totalUploadSize;
+    user.storage.used += usedSpace;
     await user.save();
 
     return response.status(200).json({
       success: true,
       message: "Files uploaded successfully",
-      data: uploadedFiles,
+      uploaded: uploadedFiles,
+      rejected: rejectedFiles,
     });
   } catch (error) {
     console.log(error);
@@ -495,7 +530,7 @@ export const myFilesController = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "Successfully retrived the files",
-      files: formatFiles(files),
+      files: formatFiles(files, user._id),
     });
   } catch (error) {
     console.log(error);
@@ -521,7 +556,7 @@ export const favouriteFilesController = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "Successfully retrived the files",
-      files: formatFiles(files),
+      files: formatFiles(files, user._id),
     });
   } catch (error) {
     console.log(error);
@@ -569,6 +604,53 @@ export const markFavController = async (request, response) => {
   }
 };
 
+export const shareFileController = async (request, response) => {
+  try {
+    const { fileId, email } = request.body;
+    const user = request.user;
+
+    if (!fileId || !email) {
+      return response.status(400).json({
+        success: false,
+        error: "fileId and email are required",
+      });
+    }
+
+    const file = await fileModel.findById(fileId);
+
+    if (!file || !file.owner.equals(user._id)) {
+      return response.status(404).json({
+        success: false,
+        error: "File not found",
+      });
+    }
+
+    const resipient = await userModel.findOne({ "email.value": email });
+
+    if (!resipient) {
+      return response.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    await fileModel.findByIdAndUpdate(fileId, {
+      $addToSet: { sharedWith: resipient._id },
+    });
+
+    return response.status(200).json({
+      success: true,
+      message: "Successfully shared the file",
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
 export const sharedFilesController = async (request, response) => {
   try {
     const user = request.user;
@@ -584,7 +666,7 @@ export const sharedFilesController = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "Successfully retrived the files",
-      files: formatFiles(files),
+      files: formatFiles(files, user._id),
     });
   } catch (error) {
     console.log(error);
@@ -610,7 +692,7 @@ export const recycledFilesController = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "Successfully retrived the files",
-      files: formatFiles(files),
+      files: formatFiles(files, user._id),
     });
   } catch (error) {
     console.log(error);

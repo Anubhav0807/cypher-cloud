@@ -7,6 +7,7 @@ import {
   recycledFilesController,
   uploadController,
   downloadController,
+  shareFileController,
   markFavController,
   renameController,
   recycleController,
@@ -26,6 +27,7 @@ fileRouter.get("/recycled", auth, recycledFilesController);
 
 fileRouter.post("/upload", auth, upload.array("files", 5), uploadController);
 fileRouter.get("/download/:id", auth, downloadController);
+fileRouter.post("/share", auth, shareFileController);
 fileRouter.patch("/favourite", auth, markFavController);
 fileRouter.patch("/rename", auth, renameController);
 fileRouter.patch("/recycle", auth, recycleController);
