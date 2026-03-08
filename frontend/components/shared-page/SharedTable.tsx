@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   DotsIcon,
@@ -106,47 +106,15 @@ function MemberAvatars({ members }: MemberAvatarsProps) {
 export default function FilesTable({ files = [], search = "" }: any) {
   const [filter, setFilter] = useState<"all" | "image" | "doc">("all");
   const [activeMenu, setActiveMenu] = useState<string | number | null>(null);
-  const [favourites, setFavourites] = useState<Record<string | number, boolean>>(
-    {},
-  );
   const [localFiles, setLocalFiles] = useState(files);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareEmail, setShareEmail] = useState("");
+  const [selectedFile, setSelectedFile] = useState<string | number | null>(
+    null,
+  );
   const { refreshDashboard } = useUser();
 
   /* 🔥 Transform backend files → UI format */
-const toggleFavourite = async (fileId: string | number) => {
-  try {
-    const newState = !favourites[fileId];
-
-    // update UI instantly
-    setFavourites((prev) => ({
-      ...prev,
-      [fileId]: newState,
-    }));
-
-    // send request to backend
-    // await axios.patch(
-    //   `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
-    //   {
-    //     fileId: fileId,
-    //     favourite: newState,
-    //   },
-    //   {
-    //     withCredentials: true,
-    //   }
-    // );
-
-  } catch (err) {
-    console.error("Favourite update failed", err);
-  }
-};
-// useEffect(() => {
-//   const favMap: any = {};
-//   files.forEach((f:any) => {
-//     favMap[f.id] = f.favourite;
-//   });
-//   setFavourites(favMap);
-// }, [files]);
-
   const transformedFiles: FileItem[] = (files || []).map((file: any) => ({
     id: file.id,
     name: file.name,
@@ -170,32 +138,25 @@ const toggleFavourite = async (fileId: string | number) => {
       f.name.toLowerCase().includes(search.toLowerCase()),
     );
   }
-
-  const handleDownload = async (fileId: string) => {
+  const handleShare = () => {
+    console.log("kkk");
+  };
+  const removingFavourites = async (fileId: string|number) => {
     try {
-      const fileData = files.find((f: any) => f.id === fileId);
-
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/download/${fileId}`,
+      await axios.patch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
         {
-          responseType: "blob",
+          fileId: fileId,
+        },
+        {
           withCredentials: true,
         },
       );
-
-      const blob = new Blob([res.data]);
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileData?.name || "downloaded-file";
-      document.body.appendChild(link);
-      link.click();
-
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      setLocalFiles((prev: any) => prev.filter((f: any) => f.id !== fileId));
+      setActiveMenu(null);
+      refreshDashboard();
     } catch (err) {
-      console.error("Download failed:", err);
+      console.error("Removal failed:", err);
     }
   };
 
@@ -240,21 +201,15 @@ const toggleFavourite = async (fileId: string | number) => {
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-visible">
         {/* Table Header */}
-        <div className="grid grid-cols-13 px-4 py-2.5 border-b border-slate-100 bg-slate-50/60">
+        <div className="grid grid-cols-12 px-4 py-2.5 border-b border-slate-100 bg-slate-50/60">
           {[
             { label: "Name", span: "col-span-5" },
             { label: "Size", span: "col-span-2" },
             { label: "Last Modified", span: "col-span-2" },
             { label: "Members", span: "col-span-2" },
-            { label: "fav", span: "col-span-1" }, // ⭐
             { label: "", span: "col-span-1" },
           ].map((h) => (
-            <div
-              key={h.label}
-              className={`${h.span} flex items-center ${
-                h.label === "fav" ? "justify-center" : ""
-              }`}
-            >
+            <div key={h.label} className={`${h.span}`}>
               {h.label && (
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   {h.label}
@@ -277,7 +232,7 @@ const toggleFavourite = async (fileId: string | number) => {
             return (
               <div
                 key={file.id}
-                className={`grid grid-cols-13 px-4 py-3 items-center hover:bg-blue-50/40 transition-colors cursor-pointer group ${
+                className={`grid grid-cols-12 px-4 py-3 items-center hover:bg-blue-50/40 transition-colors cursor-pointer group ${
                   i < filtered.length - 1 ? "border-b border-slate-50" : ""
                 }`}
                 onClick={() => setActiveMenu(null)}
@@ -313,25 +268,6 @@ const toggleFavourite = async (fileId: string | number) => {
                   <MemberAvatars members={file.members} />
                 </div>
 
-                {/* Favourite */}
-                <div className="col-span-1 flex justify-center">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavourite(file.id);
-                    }}
-                    className="text-slate-400 hover:text-yellow-400 transition"
-                  >
-                    <Star
-                      size={16}
-                      className={
-                        favourites[file.id]
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-slate-300"
-                      }
-                    />
-                  </button>
-                </div>
                 {/* Actions */}
                 <div className="col-span-1 flex justify-end relative">
                   <button
@@ -345,20 +281,21 @@ const toggleFavourite = async (fileId: string | number) => {
                   </button>
 
                   {activeMenu === file.id && (
-                    <div className="absolute right-8 top-0 w-36 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-50">
+                    <div className="absolute right-8 top-0 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
                       <button
                         onClick={() => {
-                          handleDownload(file.id);
+                          removingFavourites(file.id);
                           setActiveMenu(null);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
                       >
-                        Download
+                        Remove from Favourites
                       </button>
 
                       <button
                         onClick={() => {
-                          console.log("Download", file.id);
+                          setSelectedFile(file.id);
+                          setShareOpen(true);
                           setActiveMenu(null);
                         }}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
@@ -366,9 +303,11 @@ const toggleFavourite = async (fileId: string | number) => {
                         Share
                       </button>
 
+                      <div className="my-1 border-t border-slate-100"></div>
+
                       <button
                         onClick={() => handleDelete(file.id)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-red-500"
+                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
                       >
                         Delete
                       </button>
@@ -380,6 +319,37 @@ const toggleFavourite = async (fileId: string | number) => {
           })
         )}
       </div>
+      {shareOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-96 shadow-lg">
+            <h3 className="text-lg font-semibold mb-3">Share File</h3>
+
+            <input
+              type="email"
+              placeholder="Enter email"
+              className="border w-full px-3 py-2 rounded mb-4"
+              value={shareEmail}
+              onChange={(e) => setShareEmail(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShareOpen(false)}
+                className="px-3 py-2 text-sm text-slate-500"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+              >
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

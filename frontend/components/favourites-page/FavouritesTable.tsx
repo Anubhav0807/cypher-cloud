@@ -141,7 +141,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
   const handleShare = () => {
     console.log("kkk");
   };
-  const removingFavourites = async (fileId: string) => {
+  const removingFavourites = async (fileId: string|number) => {
     try {
       await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,

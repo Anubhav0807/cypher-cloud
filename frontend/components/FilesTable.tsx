@@ -106,9 +106,9 @@ function MemberAvatars({ members }: MemberAvatarsProps) {
 export default function FilesTable({ files = [], search = "" }: any) {
   const [filter, setFilter] = useState<"all" | "image" | "doc">("all");
   const [activeMenu, setActiveMenu] = useState<string | number | null>(null);
-  const [favourites, setFavourites] = useState<Record<string | number, boolean>>(
-    {},
-  );
+  const [favourites, setFavourites] = useState<
+    Record<string | number, boolean>
+  >({});
   const [localFiles, setLocalFiles] = useState(files);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareEmail, setShareEmail] = useState("");
@@ -120,7 +120,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
   /* 🔥 Transform backend files → UI format */
   const toggleFavourite = async (fileId: string | number) => {
     try {
-     const newState =!favourites[fileId];
+      const newState = !favourites[fileId];
 
       // update UI instantly
       setFavourites((prev) => ({
@@ -132,11 +132,11 @@ export default function FilesTable({ files = [], search = "" }: any) {
       await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
         {
-          fileId: fileId
+          fileId: fileId,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       refreshDashboard();
     } catch (err) {
@@ -145,7 +145,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
   };
   useEffect(() => {
     const favMap: any = {};
-    files.forEach((f:any) => {
+    files.forEach((f: any) => {
       favMap[f.id] = f.isFavourite;
     });
     setFavourites(favMap);
@@ -161,7 +161,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
     encryption: "AES-256",
     status: "encrypted",
     clouds: ["AWS"],
-    isFavourite:file.isFavourite
+    isFavourite: file.isFavourite,
   }));
 
   let filtered = transformedFiles;
@@ -174,10 +174,19 @@ export default function FilesTable({ files = [], search = "" }: any) {
       f.name.toLowerCase().includes(search.toLowerCase()),
     );
   }
-  const handleShare=()=>{
-    console.log("ghhin");
-    setShareOpen(false);
-  }
+  const handleShare = async (fileId: string | number) => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/share`,
+        { fileId: fileId, email: shareEmail },
+        { withCredentials: true },
+      );
+      setShareOpen(false);
+      setShareEmail("");
+    } catch (err: any) {
+      console.error("Cannot Share", err);
+    }
+  };
   const handleDownload = async (fileId: string) => {
     try {
       const fileData = files.find((f: any) => f.id === fileId);
@@ -325,7 +334,7 @@ export default function FilesTable({ files = [], search = "" }: any) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Checking Favourite",file.isFavourite);
+                      console.log("Checking Favourite", file.isFavourite);
                       toggleFavourite(file.id);
                     }}
                     className="text-slate-400 hover:text-yellow-400 transition"
@@ -411,7 +420,9 @@ export default function FilesTable({ files = [], search = "" }: any) {
               </button>
 
               <button
-                onClick={handleShare}
+                onClick={() => {
+                  if (selectedFile) handleShare(selectedFile);
+                }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
               >
                 Share

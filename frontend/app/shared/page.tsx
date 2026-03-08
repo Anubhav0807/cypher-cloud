@@ -2,7 +2,7 @@
 import FilesTable from "@/components/FilesTable";
 import Loading from "@/components/Loading";
 import Navbar from "@/components/shared-page/Navbar";
-
+import SharedTable from "@/components/shared-page/SharedTable";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
 import { useSearchParams } from "next/navigation";
@@ -59,7 +59,7 @@ export default function page() {
         <div className="flex flex-1 overflow-hidden">
           {/* ── Center content ──────────────────────────────── */}
           <main className="flex-1 overflow-y-auto p-5 xl:p-6 space-y-5">
-            <FilesTable files={filteredFiles} />
+            <SharedTable files={filteredFiles} />
           </main>
         </div>
       </div>

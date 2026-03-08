@@ -13,11 +13,10 @@ export default function Page() {
   const [showModal, setShowModal] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const [user, setUser] = useState<any>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const {refreshDashboard}=useUser();
+  const {user,refreshDashboard}=useUser();
   // ✅ Correct useEffect (not nested)
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -25,18 +24,13 @@ export default function Page() {
         setLoading(true);
 
         const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/mine`,
           { withCredentials: true }
         );
-
-        const { user, files, stats } = res.data;
-
-        setUser(user ?? null);
-        setFiles(files ?? []);
-        setStats(stats ?? null);
+        setFiles(res.data.files ?? []);
       } catch (err: any) {
-        console.error("Dashboard Fetch Error:", err);
-        setError("Failed to load dashboard");
+        console.error("All Files Fetch Error:", err);
+        setError("Failed to load all errors");
       } finally {
         setLoading(false);
       }

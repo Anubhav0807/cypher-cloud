@@ -1,8 +1,14 @@
 "use client";
 import React, { useState } from "react";
 
-const COLORS = ["#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899"];
-const ICONS = ["📄", "🖼️", "🎬", "🎵", "📦"];
+const CATEGORY_CONFIG: Record<string, { color: string; icon: string }> = {
+  Photos: { color: "#64748b", icon: "🖼️" },
+  Documents: { color: "#f59e0b", icon: "📄" },
+  "Recycle Bin": { color: "#3b82f6", icon: "♻️" },
+  Videos: { color: "#ef4444", icon: "🎬" },
+  Musics: { color: "#8b5cf6", icon: "🎵" },
+  "Other Files": { color: "#ec4899", icon: "📦" },
+};
 
 function bytesToMB(bytes: number) {
   return Number((bytes / (1024 * 1024)).toFixed(2));
@@ -22,20 +28,19 @@ export default function StoragePanel({ stats, storage }: any) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   // Convert backend object → array
-const categories = Object.entries(stats?.typeStats || {})
-  .map(([label, data]: any, i) => ({
-    label,
-    sizeMB: bytesToMB(data?.size || 0),
-    files: data?.count || 0,
-    color: COLORS[i % COLORS.length],
-    icon: ICONS[i % ICONS.length],
-  }))
-  .filter((cat) => cat.files > 0); // 🔥 add this
+  const categories = Object.entries(stats?.typeStats || {})
+    .map(([label, data]: any) => ({
+      label,
+      sizeMB: bytesToMB(data?.size || 0),
+      files: data?.count || 0,
+      color: CATEGORY_CONFIG[label]?.color || "#94a3b8",
+      icon: CATEGORY_CONFIG[label]?.icon || "📁",
+    }))
+    .filter((cat) => cat.files > 0); // 🔥 add this
 
   return (
     <div className="flex flex-col gap-3 w-full p-1">
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-
         {/* Header */}
         <div className="px-5 pt-5 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -101,9 +106,7 @@ const categories = Object.entries(stats?.typeStats || {})
                   style={{ backgroundColor: cat.color }}
                 />
 
-                <span className="text-[10px] text-slate-400">
-                  {cat.label}
-                </span>
+                <span className="text-[10px] text-slate-400">{cat.label}</span>
               </div>
             ))}
           </div>
@@ -169,7 +172,6 @@ const categories = Object.entries(stats?.typeStats || {})
             );
           })}
         </div>
-
       </div>
     </div>
   );
