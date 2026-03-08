@@ -17,6 +17,7 @@ import {
 import {
   splitBufferIntoShards,
   mergeShardsIntoBuffer,
+  recoverShards,
 } from "../utils/shard.util.js";
 
 import { streamToBuffer } from "../utils/stream.util.js";
@@ -46,13 +47,14 @@ export const uploadController = async (request, response) => {
 
       const encryptedAESKey = encryptAESKey(aesKey);
 
+      // Encrypt the file
       const { encryptedData, ivHex, authTagHex } = encryptBuffer(
         file.buffer,
         ALGORITHM,
         aesKey,
       );
 
-      const shards = splitBufferIntoShards(encryptedData, SHARD_COUNT);
+      const shards = splitBufferIntoShards(encryptedData);
       const name = await autoRename(file.originalname, user._id);
 
       const payload = {
@@ -155,19 +157,47 @@ export const downloadController = async (request, response) => {
       return s3.send(command);
     });
 
-    const shardResponses = await Promise.all(shardDownloads);
+    const shardResponses = await Promise.allSettled(shardDownloads);
 
     const shardBuffers = await Promise.all(
-      shardResponses.map((res) => streamToBuffer(res.Body)),
+      shardResponses.map(async (res) => {
+        if (res.status === "fulfilled") {
+          return streamToBuffer(res.value.Body);
+        }
+        return null;
+      }),
     );
+
+    // Self-healing
+    const shards = recoverShards(shardBuffers);
+    const repairUploads = shardBuffers
+      .map((shard, index) => {
+        if (shard != null) return null; // No repair needed
+
+        const shardKey = `users/${file.owner}/${file._id}.shard-${index}`;
+
+        const command = new PutObjectCommand({
+          Bucket: BUCKETS[index],
+          Key: shardKey,
+          Body: shards[index],
+          ContentType: file.mimetype,
+        });
+
+        return s3.send(command);
+      })
+      .filter(Boolean);
+
+    if (repairUploads.length > 0) {
+      await Promise.all(repairUploads);
+    }
+
+    // Decrypt the file
+    const [shardA, shardB, parity] = shards;
     const { algorithm, ivHex, authTagHex, encryptedAESKey } = file.encryption;
-    const encryptedBuffer = mergeShardsIntoBuffer(
-      shardBuffers,
-      file.shardCount,
-    );
+    const encryptedData = mergeShardsIntoBuffer([shardA, shardB]);
     const aesKey = decryptAESKey(encryptedAESKey);
     const decryptedBuffer = decryptBuffer(
-      encryptedBuffer,
+      encryptedData,
       algorithm,
       aesKey,
       ivHex,
@@ -191,7 +221,7 @@ export const downloadController = async (request, response) => {
 
 export const renameController = async (request, response) => {
   try {
-    const { fileId } = request.body;
+    const { fileId, newName } = request.body;
     const user = request.user;
 
     if (!fileId) {
@@ -201,7 +231,16 @@ export const renameController = async (request, response) => {
       });
     }
 
-    const name = await autoRename(file.originalname, user._id);
+    const file = await fileModel.findById(fileId);
+
+    if (!file || !file.owner.equals(user._id)) {
+      return response.status(404).json({
+        success: false,
+        error: "File not found",
+      });
+    }
+
+    const name = await autoRename(newName, user._id);
 
     await fileModel.findOneAndUpdate(
       { _id: fileId, owner: user._id },
@@ -506,6 +545,7 @@ export const markFavController = async (request, response) => {
     }
 
     const file = await fileModel.findById(fileId);
+
     if (!file || !file.owner.equals(user._id)) {
       return response.status(404).json({
         success: false,
