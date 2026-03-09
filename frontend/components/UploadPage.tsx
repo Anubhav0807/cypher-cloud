@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
-import Link from "next/link";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
-import Footer from "./landing-page/Footer";
-import axios from "axios";
 import { useUser } from "@/context/UserContext";
+import api from "@/lib/api";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -155,8 +153,8 @@ export default function UploadPage() {
     files.forEach((file) => {
       formData.append("files", file); // MUST match multer field name
     });
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/upload`,
+    const response = await api.post(
+      "/api/file/upload",
       formData,
       {
         withCredentials:true,

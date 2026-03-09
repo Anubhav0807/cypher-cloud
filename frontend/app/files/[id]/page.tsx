@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { files } from "@/lib/data";
 import type { FileItem, CloudProvider } from "@/lib/data";
-import axios from "axios";
 import { useUser } from "@/context/UserContext";
+import api from "@/lib/api";
 
 // ─── Icon helpers (inline SVGs, consistent with project style) ────────────────
 
@@ -339,14 +338,7 @@ export default function FilePreviewPage() {
   const handleDownload = async (fileId: string) => {
     try {
       const fileData = files.find((f: any) => f.id === fileId);
-
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/download/${fileId}`,
-        {
-          responseType: "blob",
-          withCredentials: true,
-        },
-      );
+      const res = await api.get(`/api/file/download/${fileId}`);
 
       const blob = new Blob([res.data]);
       const url = window.URL.createObjectURL(blob);

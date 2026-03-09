@@ -3,8 +3,8 @@
 import EyeIcon from "@/components/EyeIcon";
 import { CheckIcon } from "@/components/Icons";
 import LogoIcon from "@/components/LogoIcon";
+import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -102,14 +102,11 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/register`,
-        {
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        },
-      );
+      await api.post("/api/user/register", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
       console.log("Validated Data:", data);
       setSuccess(true);
       toast.success("Account Created Successfully");
@@ -277,13 +274,12 @@ export default function SignUpPage() {
                       {...form.register("confirmPassword")}
                       placeholder="Re-enter password"
                       required
-                      className={`w-full border rounded-lg px-3.5 py-2.5 pr-10 text-[13.5px] transition-all duration-150 ${
-                        passwordMismatch
-                          ? "border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                          : passwordsMatch
-                            ? "border-green-400 focus:border-green-400 focus:ring-2 focus:ring-green-100"
-                            : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                      }`}
+                      className={`w-full border rounded-lg px-3.5 py-2.5 pr-10 text-[13.5px] transition-all duration-150 ${passwordMismatch
+                        ? "border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                        : passwordsMatch
+                          ? "border-green-400 focus:border-green-400 focus:ring-2 focus:ring-green-100"
+                          : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        }`}
                     />
                     {form.formState.errors.confirmPassword && (
                       <p className="text-[11.5px] text-red-500 mt-1.5 font-medium">

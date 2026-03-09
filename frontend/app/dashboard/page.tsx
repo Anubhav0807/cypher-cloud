@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 import StatCards from "@/components/StatCards";
 import FileTypeStats from "@/components/FileTypeStats";
-import FoldersGrid from "@/components/FoldersGrid";
 import FilesTable from "@/components/FilesTable";
 import StoragePanel from "@/components/StoragePanel";
 import Loading from "@/components/Loading";

@@ -13,9 +13,9 @@ import {
   AiIcon,
 } from "../Icons";
 import type { FileItem, CloudProvider } from "@/lib/data";
-import axios from "axios";
 import { useUser } from "@/context/UserContext";
 import { Star } from "lucide-react";
+import api from "@/lib/api";
 
 const fileIconMap: Record<
   FileItem["type"],
@@ -85,9 +85,8 @@ function MemberAvatars({ members }: MemberAvatarsProps) {
       {members.slice(0, 3).map((_, i) => (
         <div
           key={i}
-          className={`w-6 h-6 rounded-full border-2 border-white ${
-            memberColors[i % memberColors.length]
-          } flex items-center justify-center text-white text-[8px] font-black`}
+          className={`w-6 h-6 rounded-full border-2 border-white ${memberColors[i % memberColors.length]
+            } flex items-center justify-center text-white text-[8px] font-black`}
         >
           {String.fromCharCode(65 + i)}
         </div>
@@ -141,16 +140,13 @@ export default function FilesTable({ files = [], search = "" }: any) {
   const handleShare = () => {
     console.log("kkk");
   };
-  const removingFavourites = async (fileId: string|number) => {
+  const removingFavourites = async (fileId: string | number) => {
     try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
+      await api.patch(
+        "/api/file/favourite",
         {
           fileId: fileId,
-        },
-        {
-          withCredentials: true,
-        },
+        }
       );
       setLocalFiles((prev: any) => prev.filter((f: any) => f.id !== fileId));
       setActiveMenu(null);
@@ -162,10 +158,9 @@ export default function FilesTable({ files = [], search = "" }: any) {
 
   const handleDelete = async (fileId: string | number) => {
     try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/recycle`,
+      await api.patch(
+        "/api/file/recycle",
         { fileIds: [fileId] },
-        { withCredentials: true },
       );
 
       setLocalFiles((prev: any) => prev.filter((f: any) => f.id !== fileId));
@@ -187,11 +182,10 @@ export default function FilesTable({ files = [], search = "" }: any) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-[11px] font-semibold px-3 py-1 rounded-lg capitalize transition-all ${
-                filter === f
-                  ? "bg-blue-600 text-white shadow shadow-blue-200"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-              }`}
+              className={`text-[11px] font-semibold px-3 py-1 rounded-lg capitalize transition-all ${filter === f
+                ? "bg-blue-600 text-white shadow shadow-blue-200"
+                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                }`}
             >
               {f}
             </button>
@@ -232,9 +226,8 @@ export default function FilesTable({ files = [], search = "" }: any) {
             return (
               <div
                 key={file.id}
-                className={`grid grid-cols-12 px-4 py-3 items-center hover:bg-blue-50/40 transition-colors cursor-pointer group ${
-                  i < filtered.length - 1 ? "border-b border-slate-50" : ""
-                }`}
+                className={`grid grid-cols-12 px-4 py-3 items-center hover:bg-blue-50/40 transition-colors cursor-pointer group ${i < filtered.length - 1 ? "border-b border-slate-50" : ""
+                  }`}
                 onClick={() => setActiveMenu(null)}
               >
                 {/* Name */}

@@ -1,25 +1,21 @@
 "use client";
 import Navbar from "@/components/favourites-page/Navbar";
 import FavouritesTable from "@/components/favourites-page/FavouritesTable";
-import FilesTable from "@/components/FilesTable";
 import Loading from "@/components/Loading";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
 import { useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function page() {
   const [activeNav, setActiveNav] = useState("favourites");
-  const [favouriteFiles,setFavouriteFiles]=useState([]);
-  const {user,loading,files,refreshDashboard}=useUser();
+  const [favouriteFiles, setFavouriteFiles] = useState([]);
+  const { user, loading, files, refreshDashboard } = useUser();
   const searchParams = useSearchParams();
-   const fetchFiles = async () => {
+  const fetchFiles = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/favourite`,
-        { withCredentials: true },
-      );
+      const res = await api.get("/api/file/favourite");
       console.log("Favourites", res.data);
       setFavouriteFiles(res.data.files);
     } catch (err) {
@@ -31,13 +27,13 @@ export default function page() {
   useEffect(() => {
     fetchFiles();
   }, [refreshDashboard]);
-    const query = searchParams.get("search")?.toLowerCase() || "";
-  
-    const filteredFiles = query
-      ?favouriteFiles.filter((file: any) => file.name?.toLowerCase().includes(query))
-      :favouriteFiles;
-  if(loading){
-    return <Loading/>
+  const query = searchParams.get("search")?.toLowerCase() || "";
+
+  const filteredFiles = query
+    ? favouriteFiles.filter((file: any) => file.name?.toLowerCase().includes(query))
+    : favouriteFiles;
+  if (loading) {
+    return <Loading />
   }
 
   return (
@@ -48,7 +44,7 @@ export default function page() {
         <div className="flex flex-1 overflow-visible">
           {/* ── Center content ──────────────────────────────── */}
           <main className="flex-1 overflow-y-auto p-5 xl:p-6 space-y-5">
-           <FavouritesTable files={filteredFiles} />
+            <FavouritesTable files={filteredFiles} />
           </main>
         </div>
       </div>

@@ -7,9 +7,9 @@ import { useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { toast } from "sonner";
 import { useUser } from "@/context/UserContext";
+import api from "@/lib/api";
 
 const signInSchema = z.object({
   email: z
@@ -27,9 +27,9 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export default function SignInPage() {
 
   const [showPass, setShowPass] = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const {refreshDashboard}=useUser();
-    const router=useRouter();
+  const [loading, setLoading] = useState(false);
+  const { refreshDashboard } = useUser();
+  const router = useRouter();
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -37,26 +37,21 @@ export default function SignInPage() {
       password: "",
     },
   });
-  
-  const onSubmit= async(data: SignInFormValues)=>{
-    try{
-      const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`,
-          {
-            email: data.email,
-            password: data.password,
-          },{
-            withCredentials:true
-          }
-        );
-        await refreshDashboard();
-        toast.success("Welcome Back!");
-        router.push("/dashboard");
-    }catch(error:any){
-        toast.error(error?.response?.data?.message || "Login failed");
-    }finally {
-    setLoading(false);
-  }
+
+  const onSubmit = async (data: SignInFormValues) => {
+    try {
+      await api.post("/api/user/login", {
+        email: data.email,
+        password: data.password,
+      })
+      await refreshDashboard();
+      toast.success("Welcome Back!");
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
 
   }
 
@@ -95,8 +90,8 @@ export default function SignInPage() {
               placeholder="you@company.com"
               required
               {...form.register("email")}
-              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-[13.5px] text-slate-800 placeholder-slate-400 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:scale-[1.01] focus:shadow-md transition-all duration-200"/>
-              {form.formState.errors.email && (
+              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-[13.5px] text-slate-800 placeholder-slate-400 bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:scale-[1.01] focus:shadow-md transition-all duration-200" />
+            {form.formState.errors.email && (
               <p className="text-red-500 text-xs mt-1">
                 {form.formState.errors.email.message}
               </p>

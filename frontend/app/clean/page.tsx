@@ -4,8 +4,8 @@ import FilesTable from "@/components/FilesTable";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { useEffect, useState } from "react";
 
 export default function Page() {
   const [activeNav, setActiveNav] = useState("clean");
@@ -16,17 +16,13 @@ export default function Page() {
   const [files, setFiles] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const {user,refreshDashboard}=useUser();
+  const { user, refreshDashboard } = useUser();
   // ✅ Correct useEffect (not nested)
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
-
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/mine`,
-          { withCredentials: true }
-        );
+        const res = await api.get("/api/file/mine");
         setFiles(res.data.files ?? []);
       } catch (err: any) {
         console.error("All Files Fetch Error:", err);
@@ -47,13 +43,9 @@ export default function Page() {
       // Extract all file IDs dynamically
       const fileIds = files.map((file) => file.id);
 
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/delete`,
-        {
-          withCredentials: true,
-          data: { fileIds },
-        }
-      );
+      api.delete("/api/file/delete", {
+        data: { fileIds }
+      });
 
       // Clear state after delete
       setFiles([]);

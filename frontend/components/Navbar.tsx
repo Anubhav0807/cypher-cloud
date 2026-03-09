@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SearchIcon, PlusIcon, BellIcon } from "./Icons";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 
 interface StatProps {
   totals: number;
@@ -35,13 +35,7 @@ export default function Navbar({ user }: any) {
   }, [query, router, pathname]);
 
   const handleLogOut = async () => {
-    await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`,
-      {},
-      {
-        withCredentials: true,
-      },
-    );
+    await api.post("/api/user/logout");
     router.push("/");
   };
   return (

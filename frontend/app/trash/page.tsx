@@ -6,7 +6,6 @@ import Navbar from "@/components/recycle-page/Navbar";
 import RecycleTable from "@/components/recycle-page/RecycleTable";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
-import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 

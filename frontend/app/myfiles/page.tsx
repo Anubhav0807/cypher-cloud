@@ -5,25 +5,22 @@ import Loading from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
-import axios from "axios";
+import api from "@/lib/api";
 import { useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Page() {
 
   const [activeNav, setActiveNav] = useState("files");
   const [allFiles, setAllFiles] = useState<any[]>([]);
-  
+
   const { user, loading } = useUser();
   const searchParams = useSearchParams();
 
   const fetchFiles = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/file/mine`,
-        { withCredentials: true }
-      );
-      console.log("Mine",res.data);
+      const res = await api.get("/api/file/mine");
+      console.log("Mine", res.data);
       setAllFiles(res.data.files);
 
     } catch (err) {
@@ -44,8 +41,8 @@ export default function Page() {
 
   const filteredFiles = query
     ? allFiles.filter((file: any) =>
-        file.name?.toLowerCase().includes(query)
-      )
+      file.name?.toLowerCase().includes(query)
+    )
     : allFiles;
 
   return (
@@ -58,7 +55,7 @@ export default function Page() {
         <div className="flex flex-1 overflow-hidden">
 
           <main className="flex-1 overflow-y-auto p-5 xl:p-6 space-y-5">
-            <FilesTable files={filteredFiles} search={query}/>
+            <FilesTable files={filteredFiles} search={query} />
           </main>
 
         </div>
