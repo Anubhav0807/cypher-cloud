@@ -104,12 +104,12 @@ export default function SignInPage() {
               <label className="text-[13px] font-semibold text-slate-700">
                 Password
               </label>
-              <Link
+              {/* <Link
                 href="#"
                 className="text-[13px] text-blue-600 hover:text-blue-700 font-medium"
               >
                 Forgot?
-              </Link>
+              </Link> */}
             </div>
 
             <div className="relative">

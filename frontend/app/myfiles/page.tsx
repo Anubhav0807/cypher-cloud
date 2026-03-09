@@ -14,7 +14,7 @@ export default function Page() {
   const [activeNav, setActiveNav] = useState("files");
   const [allFiles, setAllFiles] = useState<any[]>([]);
 
-  const { user, loading } = useUser();
+  const { user, loading,refreshDashboard } = useUser();
   const searchParams = useSearchParams();
 
   const fetchFiles = async () => {
@@ -31,7 +31,7 @@ export default function Page() {
   // 👇 CALL API WHEN PAGE LOADS
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [refreshDashboard]);
 
   const query = searchParams.get("search")?.toLowerCase() || "";
 

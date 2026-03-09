@@ -167,7 +167,7 @@ export default function Navbar({ user }: any) {
 
           {userOpen && (
             <div className="absolute right-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-30">
-              {["My Profile", "API Keys", "Billing", "Team Settings"].map(
+              {["API Keys"].map(
                 (item) => (
                   <button
                     key={item}

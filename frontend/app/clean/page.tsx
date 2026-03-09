@@ -43,7 +43,7 @@ export default function Page() {
       // Extract all file IDs dynamically
       const fileIds = files.map((file) => file.id);
 
-      api.delete("/api/file/delete", {
+      await api.delete("/api/file/delete", {
         data: { fileIds }
       });
 
