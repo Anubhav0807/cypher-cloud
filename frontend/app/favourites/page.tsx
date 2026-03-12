@@ -4,11 +4,12 @@ import FavouritesTable from "@/components/favourites-page/FavouritesTable";
 import Loading from "@/components/Loading";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
 export default function page() {
+  const router = useRouter();
   const [activeNav, setActiveNav] = useState("favourites");
   const [favouriteFiles, setFavouriteFiles] = useState([]);
   const { user, loading, files, refreshDashboard } = useUser();
@@ -18,8 +19,12 @@ export default function page() {
       const res = await api.get("/api/file/favourite");
       console.log("Favourites", res.data);
       setFavouriteFiles(res.data.files);
-    } catch (err) {
-      console.error("Failed to fetch my files", err);
+    } catch (err: any) {
+      if (err.rseponse?.status === 401) {
+        router.replace("/sign-in");
+      } else {
+        console.error("Failed to fetch my files", err);
+      }
     }
   };
 

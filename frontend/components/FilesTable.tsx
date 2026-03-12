@@ -16,6 +16,7 @@ import type { FileItem, CloudProvider } from "@/lib/data";
 import { useUser } from "@/context/UserContext";
 import { Star } from "lucide-react";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const fileIconMap: Record<
   FileItem["type"],
@@ -103,6 +104,7 @@ function MemberAvatars({ members }: MemberAvatarsProps) {
 /* ------------------ Main Component ------------------ */
 
 export default function FilesTable({ files = [], search = "" }: any) {
+  const router = useRouter();
   const [filter, setFilter] = useState<"all" | "image" | "doc">("all");
   const [activeMenu, setActiveMenu] = useState<string | number | null>(null);
   const [favourites, setFavourites] = useState<
@@ -204,8 +206,12 @@ export default function FilesTable({ files = [], search = "" }: any) {
 
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
+    } catch (err:any) {
+      if (err.response?.status === 401) {
+        router.replace("/sign-in");
+      } else {
+        console.error("Download failed:", err);
+      }
     }
   };
 

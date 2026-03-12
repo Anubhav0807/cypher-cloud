@@ -5,9 +5,11 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Page() {
+  const router = useRouter();
   const [activeNav, setActiveNav] = useState("clean");
   const [showFilesTable, setShowFilesTable] = useState(false);
   const [showModal, setShowModal] = useState(true);
@@ -25,8 +27,13 @@ export default function Page() {
         const res = await api.get("/api/file/mine");
         setFiles(res.data.files ?? []);
       } catch (err: any) {
-        console.error("All Files Fetch Error:", err);
-        setError("Failed to load all errors");
+        if (err.response?.status === 401) {
+          router.replace("/sign-in");
+          setError("Session expired");
+        } else {
+          console.error("All Files Fetch Error:", err);
+          setError("Failed to load all errors");
+        }
       } finally {
         setLoading(false);
       }

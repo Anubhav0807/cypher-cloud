@@ -160,18 +160,17 @@ export default function RecycleTable({ files = [], search = "" }: any) {
 
   const handleDelete = async (fileId: string | number) => {
     try {
-      await api.patch(
-        "/api/file/recycle",
-        { fileIds: [fileId] },
-      );
+      await api.delete("/api/file/delete", {
+        data: { fileIds: [fileId] }
+      });
 
-      setLocalFiles((prev: any) => prev.filter((f: any) => f.id !== fileId));
-
-      setActiveMenu(null);
+      // Clear state after delete
+      refreshDashboard();
     } catch (err) {
       console.error("Delete failed:", err);
     }
   };
+
 
   return (
     <div>

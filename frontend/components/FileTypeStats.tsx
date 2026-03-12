@@ -19,7 +19,7 @@ export default function FileTypeStats({types}:any) {
   const storageCategories = [
   { label: "Documents", files:types.Documents?types.Documents.count:0, size: "2.2 GB", sizeGB: 2.2, color: "#F59E0B", icon: "doc" },
   { label: "Photos", files:types.Photos?types.Photos.count:0, size: "13 GB", sizeGB: 13, color: "#3B82F6", icon: "image" },
-  { label: "Videos", files:types.Video?types.Video.count:0, sizeGB: 42, color: "#EF4444", icon: "video" },
+  { label: "Videos", files:types.Videos?types.Videos.count:0, sizeGB: 42, color: "#EF4444", icon: "video" },
   { label: "Musics", files:types.Musics?types.Musics.count:0, size: "1.8 GB", sizeGB: 1.8, color: "#A855F7", icon: "audio" },
   { label: "Other Files", files: types["Other Files"]?types["Other Files"].count:0, size: "16 GB", sizeGB: 16, color: "#EC4899", icon: "zip" },
 ];

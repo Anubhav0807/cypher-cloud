@@ -8,24 +8,4 @@ const api = axios.create({
   },
 });
 
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (typeof window !== "undefined") {
-//       const status = error.response?.status;
-//       const path = window.location.pathname;
-
-//       if (
-//         status === 401 &&
-//         path !== "/sign-in" &&
-//         path !== "/sign-up"
-//       ) {
-//         window.location.href = "/sign-in";
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
-
 export default api;

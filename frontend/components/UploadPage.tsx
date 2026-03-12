@@ -392,9 +392,9 @@ const [activeNav, setActiveNav] = useState("upload");
                 ))}
               </div>
 
-              <button className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:scale-[1.01] transition-all duration-200">
+              {/* <button className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:scale-[1.01] transition-all duration-200">
                 Confirm & Save to Cloud
-              </button>
+              </button> */}
             </div>
           )}
         </div>

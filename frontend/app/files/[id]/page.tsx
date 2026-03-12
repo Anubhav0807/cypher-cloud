@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import type { FileItem, CloudProvider } from "@/lib/data";
 import { useUser } from "@/context/UserContext";
 import api from "@/lib/api";
@@ -301,6 +301,7 @@ function formatSize(bytes: number) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function FilePreviewPage() {
+  const router = useRouter();
   const params = useParams();
   const { files } = useUser();
   const [copied, setCopied] = useState(false);
@@ -351,8 +352,12 @@ export default function FilePreviewPage() {
 
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        router.replace("/sign-in");
+      } else {
+        console.error("Download failed:", err);
+      }
     }
   };
 

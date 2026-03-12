@@ -1,11 +1,13 @@
 "use client";
 
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext<any>(null);
 
 export const UserProvider = ({ children }: any) => {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [files, setFiles] = useState([]);
@@ -25,10 +27,12 @@ export const UserProvider = ({ children }: any) => {
       setStorage(user.storage || { total: 0, used: 0 });
       console.log("Currently" + files);
       console.log("Currently" + storage);
-
-
-    } catch (err) {
-      console.error("Dashboard fetch failed", err);
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        router.replace("/sign-in");
+      } else {
+        console.error("Dashboard fetch failed", err);
+      }
     } finally {
       setLoading(false);
     }

@@ -6,15 +6,16 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { useUser } from "@/context/UserContext";
 import api from "@/lib/api";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Page() {
+  const router = useRouter();
 
   const [activeNav, setActiveNav] = useState("files");
   const [allFiles, setAllFiles] = useState<any[]>([]);
 
-  const { user, loading,refreshDashboard } = useUser();
+  const { user, loading, refreshDashboard } = useUser();
   const searchParams = useSearchParams();
 
   const fetchFiles = async () => {
@@ -23,8 +24,12 @@ export default function Page() {
       console.log("Mine", res.data);
       setAllFiles(res.data.files);
 
-    } catch (err) {
-      console.error("Failed to fetch my files", err);
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        router.replace("/sign-in");
+      } else {
+        console.error("Failed to fetch my files", err);
+      }
     }
   };
 

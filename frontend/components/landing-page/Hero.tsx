@@ -78,7 +78,7 @@ export default function Hero() {
 
           {/* Buttons */}
           <div style={anim("0.3s")} className="flex flex-wrap gap-3">
-            <Link href='/sign-in'>
+            <Link href='/sign-up'>
             <button className="group flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-7 py-3.5 rounded-xl shadow-lg shadow-blue-300/40 active:scale-95 transition-all duration-200">
               Get Started Free
               <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
